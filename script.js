@@ -1062,6 +1062,7 @@ function render(customVerses = null) {
 
   let lastBook = null;
   let lastChapter = null;
+  let count = 0;
 
   for (let b = bookStart; b <= bookEnd; b++) {
     if (!baseData[b]) continue;
@@ -1084,6 +1085,12 @@ function render(customVerses = null) {
           countContext,
           contextBool
         }));
+
+        count++
+        if (count >= parseInt(elements.searchSize.value, 10)) {
+          container.innerHTML += `<p><b>${elements.searchSize.value} verses displayed. Limit reached. Increase this limit in 'Display Settings' if you want to render more.</b></p>`;
+          return
+        }
       }
     }
   }
@@ -2348,9 +2355,7 @@ function multiWordSearch(searchStr, lookupInd) {
   });
 
   // add boundary marker if needed
-  console.log(endIndex)
   if (searchState.boundaries.length <= searchState.page + 1 && count > endIndex) {
-    console.log(endIndex)
     searchState.boundaries.push(endIndex);
   }
 
