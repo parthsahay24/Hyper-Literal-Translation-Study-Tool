@@ -724,7 +724,7 @@ function compareBCV(b1, c1, v1, b2, c2, v2) {
   return b1 !== b2 ? b1 - b2 : c1 !== c2 ? c1 - c2 : v1 - v2;
 }
 
-function addVerses(b, c, v, delta) {
+function addVerses(b, c, v, delta, err = false) {
   // delta can be positive (add) or negative (subtract)
   while (delta !== 0) {
     if (!baseData[b] || !baseData[b][c]) break;
@@ -738,11 +738,14 @@ function addVerses(b, c, v, delta) {
         if (c >= baseData[b].length) {
           c = 0;
           b++;
-          if (b >= baseData.length) {
-            b = baseData.length - 1;
-            c = baseData[b].length - 1;
-            v = baseData[b][c].length - 1;
-            break;
+          if (b >= baseData.length || baseData[b].length === 0) { // Remove second case once NT is complete.
+            // overflow → return last valid verse
+            return [ 
+              b - 1,
+              baseData[b - 1].length - 1,
+              baseData[b - 1][baseData[b - 1].length - 1].length - 1,
+              true
+            ];
           }
         }
       }
@@ -754,10 +757,8 @@ function addVerses(b, c, v, delta) {
         if (c < 0) {
           b--;
           if (b < 39) { // Old Testament not available yet.
-            b = 0;
-            c = 0;
-            v = 0;
-            break;
+            // underflow → return very first verse
+            return [39, 0, 0, true];
           } else {
             c = baseData[b].length - 1;
           }
@@ -767,7 +768,8 @@ function addVerses(b, c, v, delta) {
       delta++;
     }
   }
-  return [b, c, v];
+
+  return [b, c, v, false];
 }
 
 function adjustSelections() {
@@ -1026,26 +1028,21 @@ function render(customVerses = null) {
     // Default verse-style rendering
     showVerses = true;
     customVerses.forEach(({ book, chapter, verse, verseData }) => {
-      if (book !== -1) {
-        ({ passUnderscore, countContext, verseEl } = renderSingleVerse(
-          container,
-          book,
-          chapter,
-          verse,
-          verseData,
-          {
-            showVerses,
-            reverseInterlinear,
-            passUnderscore,
-            countContext,
-            contextBool
-          },
-          verseEl
-        ));
-      } else {
-        // Skip rendering but still increment context counter
-        countContext++;
-      }
+      ({ passUnderscore, countContext, verseEl } = renderSingleVerse(
+        container,
+        book,
+        chapter,
+        verse,
+        verseData,
+        {
+          showVerses,
+          reverseInterlinear,
+          passUnderscore,
+          countContext,
+          contextBool
+        },
+        verseEl
+      ));
     });
     return;
   }
@@ -1139,7 +1136,7 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
   }
   let verseRange = parseInt(elements.gapInput.value, 10);
 
-  if (showVerses) {
+  if (showVerses && verse !== -1) {
     let fullLabel = `${bookAbb[book]} ${chapter + 1}:${verse + 1}`;
     let displayLabel = "";
 
@@ -1772,6 +1769,13 @@ function matchMorphTag(pattern, tag) {
     patSeg = patSeg || "";
     tagSeg = tagSeg || "";
 
+    // If either side has '/', split into options
+    if (patSeg.includes('/') || tagSeg.includes('/')) {
+      const patOptions = patSeg.split('/');
+      const tagOptions = tagSeg.split('/');
+      return patOptions.some(p => tagOptions.some(t => matchSegment(p, t)));
+    }
+
     // Segment-level wildcard
     if (patSeg === "*" || patSeg === "-*") return true;
 
@@ -1793,7 +1797,9 @@ function matchMorphTag(pattern, tag) {
     }
 
     // All pattern consumed; extra characters in tag are allowed only if last pat char was *
-    if (t < tagSeg.length) return false;
+    if (t < tagSeg.length && patSeg[patSeg.length - 1] !== "*") {
+      return false;
+    }
 
     return true;
   }
@@ -1866,10 +1872,10 @@ function collectVerseMatches(b, c, v) {
     }
 
     for (let offset = startOffset; offset <= endOffset; offset++) {
-      const [nb, nc, nv] = addVerses(b, c, v, offset);
+      const [nb, nc, nv, er] = addVerses(b, c, v, offset, 1);
 
       // Check if verse is valid
-      if (baseData[nb]?.[nc]?.[nv]) {
+      if (baseData[nb]?.[nc]?.[nv] && !er) {
         results.push({
           book: nb,
           chapter: nc,
@@ -1912,6 +1918,7 @@ function forEachVerse(callback) {
 
 let searchState = {
   term: null,         // current search term
+  contextCount: 0,     // Current gapInput
   page: 0,            // current page index
   pageSize: 10,      // max results per page
   boundaries: [0]      // array of indexes where each page starts (0, x, y, …)
@@ -1931,10 +1938,11 @@ function searchVerses() {
     return;
   }
 
-  // Reset state if new term
-  if (searchTerm !== searchState.term || parseInt(elements.searchSize.value) !== searchState.pageSize) {
+  // Reset state if new term or new search size, or new context size.
+  if (searchTerm !== searchState.term || parseInt(elements.searchSize.value) !== searchState.pageSize || parseInt(elements.gapInput.value) !== searchState.contextCount) {
     searchState = {
       term: searchTerm,
+      contextCount: parseInt(elements.gapInput.value),
       page: 0,
       pageSize: parseInt(elements.searchSize.value),
       boundaries: [0]
@@ -2019,7 +2027,7 @@ function handleLookupMatches(searchTerm, matches) {
 
   // figure out paging bounds
   const startIndex = searchState.boundaries[searchState.page];
-  const endIndex = startIndex + elements.searchSize.value * 10;
+  const endIndex = startIndex + parseInt(elements.searchSize.value);
 
   let count = 0; // how many matches total so far
 
@@ -2076,7 +2084,7 @@ function handleWordMatches(term, matches) {
   const searchTerm = term.toLowerCase();
 
   const startIndex = searchState.boundaries[searchState.page];
-  const endIndex = startIndex + elements.searchSize.value * 10;
+  const endIndex = startIndex + parseInt(elements.searchSize.value, 10);
 
   let count = 0;
 
