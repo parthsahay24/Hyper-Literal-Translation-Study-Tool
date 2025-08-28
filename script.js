@@ -1064,7 +1064,7 @@ function render(customVerses = null) {
   const bookEnd = parseInt(elements.bookEnd.value);
   const chapterEnd = parseInt(elements.chapterEnd.value);
   const verseEnd = parseInt(elements.verseEnd.value);
-  
+
   contextBool = false;
 
   let lastBook = null;
@@ -1096,11 +1096,18 @@ function render(customVerses = null) {
         count++
         if (count >= parseInt(elements.searchSize.value, 10)) {
           container.innerHTML += `<p><b>${elements.searchSize.value} verses displayed. Limit reached. Increase this limit in 'Display Settings' if you want to render more.</b></p>`;
+          elements.gapInput.value = count;
+          elements.bookEnd.value = b;
+          populateChapters(b, elements.chapterEnd);
+          elements.chapterEnd.value = c;
+          populateVerses(b, c, elements.verseEnd);
+          elements.verseEnd.value = v;
           return
         }
       }
     }
   }
+  elements.gapInput.value = count;
 }
 
 function createClickableSpan(className, text, wordEl) {

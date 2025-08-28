@@ -37,15 +37,15 @@
     <select id="verseStart" data-id></select>
   </span>
   <span class="head-group">
-    <label>End Ref: <select id="bookEnd" data-id></select></label>
-    <select id="chapterEnd" data-id></select>
-    <select id="verseEnd" data-id></select>
-  </span>
-  <span class="head-group">
     <label title="Select how many verses to show during context searches or when fixing impossible reference range selections." for="gapInput">Verse Range:</label>
     <input id="gapInput" type="number" value="1" min="1" step="1" style="width: 45px;" data-id>
     <label title="Force the browser to maintain the selected Verse Range when navigating."><input type="checkbox" id="enforceGap" checked data-id> Fixed</label>
     <button onclick="render()">Load</button>
+  </span>
+  <span class="head-group">
+    <label>End Ref:&nbsp; <select id="bookEnd" data-id></select></label>
+    <select id="chapterEnd" data-id></select>
+    <select id="verseEnd" data-id></select>
   </span>
   <br>
   <span class="head-group">
