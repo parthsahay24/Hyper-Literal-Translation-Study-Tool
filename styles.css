@@ -185,8 +185,17 @@ select {
   font-weight: bold;
 }
 
+.head-group2 {
+  display: inline-flex;
+  padding: .2rem;
+}
+
 .head-group {
   display: inline-flex;
+  padding: .2rem;
+  margin: .1rem;
+  border: 1px, solid, #4B2E1D;
+  border-radius: 3px;
 }
 
 .word-list-grid .english {

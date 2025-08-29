@@ -150,32 +150,75 @@ async function getLastModified(url) {
 }
 
 async function updateToolLastUpdated() {
-  const files = ["ght-i.html", "styles.css", "script.js"];
-  const dates = await Promise.all(files.map(f => getLastModified(f)));
-  const latest = dates.filter(d => d).sort((a,b) => b - a)[0]; // newest first
+  const el = document.getElementById("tool_last_updated");
 
-  if (latest) {
-    const formatted = latest.toLocaleDateString('en-GB', {
-      day: 'numeric', month: 'short', year: 'numeric'
+  let lastModifiedUTC = el?.dataset.compileLastmod || null;
+
+  if (!lastModifiedUTC) {
+    // fallback: fetch last-modified headers
+    const files = ["ght-i.html", "styles.css", "script.js"];
+    const dates = await Promise.all(files.map(f => getLastModified(f)));
+    const latest = dates.filter(d => d).sort((a, b) => b - a)[0];
+    lastModifiedUTC = latest ? latest.toUTCString() : null;
+  }
+
+  if (lastModifiedUTC) {
+    const date = new Date(lastModifiedUTC);
+    const formatted = date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
     });
-    const time = latest.toLocaleTimeString('en-GB', {
-      hour: '2-digit', minute: '2-digit'
+    const time = date.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit"
     });
-    document.getElementById("tool_last_updated").textContent = `${formatted} ${time}`;
+    el.textContent = `${formatted} ${time}`;
   } else {
-    document.getElementById("tool_last_updated").textContent = "unknown";
+    el.textContent = "unknown";
   }
 }
 
 // Run it
 updateToolLastUpdated();
 
-let baseData; // This will hold the base JSON data loaded from base.json
-let lookupdb; // This will hold the lookup data loaded from lookups.json
+let baseData;
+let lookupdb;
 // Main initialization function
 function loadBaseJson() {
   const params = new URLSearchParams(window.location.search);
   const dbName = params.get("db") === "basex" ? "basex.json" : "base.json";
+
+  // If already available (compiled build), skip fetch
+  if (typeof baseData !== "undefined" && typeof lookupdb !== "undefined" && dbName !== "basex.json") {
+    // Prefer compile-time injected UTC timestamp
+    const el = document.getElementById("data_last_updated");
+    const precompiled = el?.dataset.compileLastmod || null;
+
+    if (precompiled) {
+      const date = new Date(precompiled);
+      const formatted = date.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+      const time = date.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      el.textContent = `${formatted} ${time}`;
+    }
+
+    initializeSelections();
+    setupEventListeners();
+    if (currentRender === "search") {
+      searchVerses();
+    } else {
+      render();
+    }
+    getCount();
+    return;
+  }
 
   const baseUrl = dbName + '?t=' + Date.now();
   const lookupUrl = 'lookups.json?t=' + Date.now();
