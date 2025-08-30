@@ -185,17 +185,48 @@ select {
   font-weight: bold;
 }
 
-.head-group2 {
+.head-group-wrapper {
   display: inline-flex;
-  padding: .2rem;
+  flex-wrap: wrap;        /* allows wrapping onto new lines */
+  gap: .2rem;             /* spacing between groups */
+  padding: .3rem;
+  margin: .1rem;
+  border: 1px solid #4B2E1D;
+  border-radius: 5px;
 }
 
 .head-group {
   display: inline-flex;
+  flex-wrap: wrap;
   padding: .2rem;
   margin: .1rem;
-  border: 1px, solid, #4B2E1D;
+  border: 1px solid #4B2E1D;
   border-radius: 3px;
+}
+
+.head-group2 {
+  display: inline-flex;
+  flex-wrap: wrap;
+  padding: .2rem;
+}
+
+.head-group3 {
+  display: flex;
+  flex-direction:column;
+  padding: .2rem;
+  margin: .1rem;
+  border: 1px solid #4B2E1D;
+  border-radius: 3px;
+}
+
+.head-group3 > span:last-child {
+  display: flex;         /* row layout */
+  flex-wrap: wrap;       /* allow wrapping if screen is narrow */
+  gap: 0.5rem;           /* spacing between checkboxes */
+}
+
+.head-group3 label {
+  white-space: nowrap;   /* keep "Greek " together */
 }
 
 .word-list-grid .english {

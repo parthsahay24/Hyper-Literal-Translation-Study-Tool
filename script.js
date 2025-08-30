@@ -529,7 +529,7 @@ function initializeSelections() {
       const el = elements[key] || document.getElementById(key);
       if (!el) continue;
 
-      if ("checked" in el) {
+      if (el.type === "checkbox" || el.type === "radio") {
         el.checked = value;
       } else if ("value" in el) {
         el.value = value;
@@ -1649,13 +1649,24 @@ function showPopupTouchEnd(e) {
   }
 }
 
-function saveSettings() {
-  const settings = {};
+function saveSettings(targetAttr = null) {
+  // Load existing settings so we only update parts
+  const settings = JSON.parse(localStorage.getItem("userSettings") || "{}");
 
   for (const [key, el] of Object.entries(elements)) {
     if (!el) continue;
 
-    if ("checked" in el) {
+    // Case 1: saving only a specific group
+    if (targetAttr) {
+      if (!el.hasAttribute(targetAttr)) continue;
+    } 
+    // Case 2: default save (exclude special groups)
+    else {
+      if (el.hasAttribute("ref-id") || el.hasAttribute("search-id")) continue;
+    }
+
+    // Save checkbox/radio as boolean, others as value
+    if (el.type === "checkbox" || el.type === "radio") {
       settings[key] = el.checked;
     } else if ("value" in el) {
       settings[key] = el.value;
@@ -1665,8 +1676,32 @@ function saveSettings() {
   localStorage.setItem("userSettings", JSON.stringify(settings));
 }
 
-function resetSettings() {
-  localStorage.removeItem("userSettings");
+function resetSettings(targetAttr = null) {
+  const settings = JSON.parse(localStorage.getItem("userSettings") || "{}");
+
+  for (const [key, el] of Object.entries(elements)) {
+    if (!el) continue;
+
+    // Case 1: reset only a specific group
+    if (targetAttr) {
+      if (!el.hasAttribute(targetAttr)) continue;
+    } 
+    // Case 2: default reset (exclude ref-id and search-id)
+    else {
+      if (el.hasAttribute("ref-id") || el.hasAttribute("search-id")) continue;
+    }
+
+    // Delete from settings
+    delete settings[key];
+  }
+
+  // Save updated settings back
+  if (Object.keys(settings).length > 0) {
+    localStorage.setItem("userSettings", JSON.stringify(settings));
+  } else {
+    localStorage.removeItem("userSettings");
+  }
+
   location.reload();
 }
 
