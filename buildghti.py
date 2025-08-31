@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Input files
 html_file = "ght-i-raw.html"
@@ -39,7 +39,8 @@ data_mtime = max(file_mtime(base_file), file_mtime(lookups_file))
 tool_mtime = max(file_mtime(html_file), file_mtime(js_file), file_mtime(css_file))
 
 def fmt(ts):
-    return datetime.utcfromtimestamp(ts).strftime("%a, %d %b %Y %H:%M:%S GMT")
+    dt = datetime.fromtimestamp(ts, tz=timezone.utc)
+    return dt.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
 data_compile = fmt(data_mtime)
 tool_compile = fmt(tool_mtime)

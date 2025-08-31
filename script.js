@@ -211,6 +211,7 @@ function loadBaseJson() {
 
     initializeSelections();
     setupEventListeners();
+    setFontSize();
     if (currentRender === "search") {
       searchVerses();
     } else {
@@ -252,6 +253,7 @@ function loadBaseJson() {
     lookupdb = lookupsJson; // or whatever variable you're using for the lookup table
     initializeSelections();
     setupEventListeners();
+    setFontSize();
     if (currentRender === "search") {
       searchVerses();
     } else {
@@ -424,7 +426,7 @@ function setupEventListeners() {
   // For checkboxes that trigger onOptionsChange
   [
     "showGreek", "showEnglish", "showPcode", "showVerses",
-    "showStrongs", "showRoots", "newlineAfterVerse", "reverseInterlinear", "highlightSearch", "searchSize"
+    "showStrongs", "showRoots", "newlineAfterVerse", "reverseInterlinear", "highlightSearch", "searchSize", "customFormat"
   ].forEach(id => {
     elements[id].addEventListener("change", onOptionsChange);
   });
@@ -442,6 +444,12 @@ function setupEventListeners() {
   elements.searchInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
       searchVerses();
+    }
+  });
+
+  elements.fontSize.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      setFontSize();
     }
   });
 
@@ -845,6 +853,12 @@ function adjustSelections() {
   }
 }
 
+function setFontSize() {
+  let size = elements.fontSize.value;
+  document.documentElement.style.setProperty("--font-size", size + "px");
+  document.documentElement.style.setProperty("--font-size-reduced", Math.floor(size * .75) + "px")
+}
+
 const lookupUnderscore = { // Run reportnonadjacent.py to update this
   "not": ["mh", "oy", "oyx", "oyk"],
   "not-still": ["oyketi"],
@@ -881,6 +895,137 @@ function processUnderscoreWord(eng, grk, lookupUnderscore) {
 
   // No match, reconstruct with dash
   return `${parts[0]}-${parts[parts.length - 1]}`;
+}
+
+function processFormatting(input) {
+  const reducedStyle = 'font-size: var(--font-size-reduced); color: rgb(50, 100, 50);';
+
+  function smallText(str) {
+    return `<span class="formatted-chunk subtext" style="${reducedStyle}">${str}</span>`;
+  }
+
+  function processBracketed(text, beforeChar, afterChar) {
+    const exceptions = ["ing", "?"]; // anything that should never get a hyphen
+    let trimmed = text.trim();
+
+    if (!exceptions.includes(trimmed.toLowerCase())) {
+      const firstChar = trimmed[0];
+      const lastChar  = trimmed[trimmed.length - 1];
+
+      const isLatinBefore = /[a-zA-Z]$/.test(beforeChar) && /[a-zA-Z]/.test(firstChar);
+      const isLatinAfter  = /^[a-zA-Z]/.test(afterChar) && /[a-zA-Z]/.test(lastChar);
+
+      if (isLatinBefore) trimmed = "-" + trimmed;
+      if (isLatinAfter)  trimmed = trimmed + "-";
+    }
+
+    let result = smallText(trimmed);
+
+    return result;
+  }
+
+  function toSubscript(str) {
+    // use a span so styling matches smallText; vertical-align keeps it “sub”
+    return `<span class="formatted-chunk subscript" style="${reducedStyle}; vertical-align: sub;">${str}</span>`;
+  }
+
+  // Define special replacements
+  const specialMap = {
+    "feminine": "f",
+    "masculine": "m",
+    "neuter": "n",
+    "singular": "sg",
+    "plural": "pl",
+    "adverb": "adv",
+    "noun": "noun",
+    "Hebrew": "Heb",
+    "Latin": "Lat",
+    "adjective": "adj",
+    "comparatively": "comp",
+    "masculine singular": "m,sg",
+    "neuter plural": "n,pl",
+    "adjective plural": "adj,pl",
+    "participle": "ptcpl",
+    "accusative": "acc",
+    "feminine plural": "f,pl",
+    "masculine plural": "m,pl",
+    "neuter singular": "n,sg",
+    "conjunction": "cnj",
+    "pronoun": "prn",
+    "subject": "sbj",
+    "object": "obj",
+    "noun plural": "n,pl",
+    "weight": "weight",
+    "verb participle": "verb,ptcpl",
+    "verb imperative": "verb,imp",
+    "vocative": "voc",
+    "verb": "v"
+  };
+
+  const specialBracketSequences = {
+    "[ing][a]": smallText("ing-a-"),      // or whatever replacement you want
+    "[other][one]": smallText("-other-one")
+  };
+
+  for (const seq in specialBracketSequences) {
+    const replacement = specialBracketSequences[seq];
+    const escapedSeq = seq.replace(/[[\]]/g, '\\$&'); // escape brackets for regex
+    const re = new RegExp(escapedSeq, 'g');
+    input = input.replace(re, replacement);
+  }
+
+  // Replace "of" or "to" before {
+  let output = input.replace(/\b(of|to)\s*(?={)/gi, (_, word) => smallText(word));
+
+  // Replace { and } with lower half brackets
+  const leftCorner  = `<span class="formatted-chunk bracket" style="display:inline-block; transform:scaleX(0.8);">⌞</span>`;
+  const rightCorner = `<span class="formatted-chunk bracket" style="display:inline-block; transform:scaleX(0.8);">⌟</span>`;
+  output = output.replace(/{/g, leftCorner).replace(/}/g, rightCorner);
+
+  // 3) [ ... ] → subscript if mapped; else smallText (with auto-parens for multiword)
+  output = output.replace(/\[([^\]]+)\]/g, (match, innerRaw, offset) => {
+    const beforeChar = output[offset - 1] || "";
+    const afterChar  = output[offset + match.length] || "";
+    const inner = innerRaw.trim();
+    const key = inner.toLowerCase();
+    if (specialMap[key]) return toSubscript(specialMap[key]);
+    let s = inner;
+    const forceParen = ["diminutive", "4x", "3x", "Greek", "you"];
+    if (/\s/.test(s) || forceParen.includes(s)) {
+      s = '(' + s + ')';
+    }
+    return processBracketed(s, beforeChar, afterChar);
+  });
+
+  // 4) Wrap all remaining *plain text nodes* in .formatted-chunk
+  const container = document.createElement('div');
+  container.innerHTML = output;
+
+  const walker = document.createTreeWalker(
+    container,
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode(node) {
+        // skip pure whitespace
+        return node.nodeValue.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    }
+  );
+
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+
+  for (const textNode of nodes) {
+    // if already inside a formatted chunk, skip
+    if (textNode.parentElement && textNode.parentElement.closest('.formatted-chunk')) continue;
+
+    const span = document.createElement('span');
+    span.className = 'formatted-chunk';
+    span.textContent = textNode.nodeValue; // safe, preserves text as-is
+    textNode.parentNode.replaceChild(span, textNode);
+  }
+
+  return container.innerHTML;
 }
 
 function getDisplayOptions() {
@@ -1156,7 +1301,11 @@ function render(customVerses = null) {
 function createClickableSpan(className, text, wordEl) {
   const span = document.createElement("span");
   span.className = className;
-  span.textContent = text;
+  if (elements.customFormat.checked && className === "eng") {
+    span.innerHTML = text;
+  } else {
+    span.textContent = text;
+  }
 
   span.addEventListener("click", (e) => {
     const isPopupActive = wordEl === currentPopup;
@@ -1346,6 +1495,7 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
     } else if (showStrongs) {
       // Add a non-clickable space span for layout consistency
       const spaceSpan = document.createElement('span');
+      spaceSpan.className = "pcode"
       spaceSpan.textContent = '\u00A0';
       wordEl.appendChild(spaceSpan);
     }
@@ -1356,6 +1506,7 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
     } else if (showPcode) {
       // Add a non-clickable space span for layout consistency
       const spaceSpan = document.createElement('span');
+      spaceSpan.className = "pcode"
       spaceSpan.textContent = '\u00A0';
       wordEl.appendChild(spaceSpan);
     }
@@ -1371,7 +1522,11 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
     }
 
     if (showEnglish && pEng) {
-      wordEl.appendChild(createClickableSpan("eng", pEng, wordEl));
+      if (elements.customFormat.checked) {
+        wordEl.appendChild(createClickableSpan("eng", processFormatting(pEng), wordEl));
+      } else {
+        wordEl.appendChild(createClickableSpan("eng", pEng, wordEl));
+      }
       hasContent = true;
     } else if (showEnglish) {
       // Add a non-clickable space span for layout consistency
@@ -1409,6 +1564,7 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
       } else {
         // Add blank space for layout consistency
         const spaceSpan = document.createElement('span');
+        spaceSpan.className = "roots"
         spaceSpan.textContent = '\u00A0';
         secondContainer.appendChild(spaceSpan);
       }
@@ -1419,8 +1575,10 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
       // Add a non-clickable space span for layout consistency
       const spaceSpan = document.createElement('span');
       spaceSpan.textContent = '\u00A0';
+      spaceSpan.className = "pcode"
       wordEl.appendChild(spaceSpan);
       const spaceSpan2 = document.createElement('span');
+      spaceSpan2.className = "pcode"
       spaceSpan2.textContent = '\u00A0';
       wordEl.appendChild(spaceSpan2);
     }

@@ -69,10 +69,13 @@
       <label><input type="checkbox" id="newlineAfterVerse" data-id> New line after each verse</label><br>
       <label title="When checked, show the GHT English word order, otherwise use the word order as used in the original Greek text."><input type="checkbox" id="reverseInterlinear" checked data-id> Reverse Interlinear</label><br>
       <label title="When checked, highlight any word that matches the search conditions."><input type="checkbox" id="highlightSearch" checked data-id> Highlight Search Results</label><br>
+      <label title="When checked, English text will use Nathan's formatting style."><input type="checkbox" id="customFormat" data-id> Format English</label><br>
       <label title="Select how many search results or verses to show at a time." for="searchSize">Max Results:</label>
       <input id="searchSize" type="number" value="100" min="1" step="1" style="width: 45px;" data-id><br>
-      <button onclick="saveSettings()">Save Display Settings</button><br>
-      <button onclick="resetSettings()">Reset Display Settings</button>
+      Font Size:&nbsp;<input id="fontSize" type="number" value="16" min="1" step="1" style="width: 45px;" data-id/>
+      <button id="applyFont" onclick="setFontSize()" data-id>Apply</button>
+      <button class="buttonInDropdown" onclick="saveSettings()">Save Display Settings</button><br>
+      <button class="buttonInDropdown" onclick="resetSettings()">Reset Display Settings</button>
     </div>
     <button data-toggle-popup onclick="togglePopup('searchPopup')">Search</button>
     <div id="searchPopup" class="popup menu-popup">
@@ -83,18 +86,18 @@
       <label title="Single-word Search: Only search using normalized English for broader results."><input id="normalized" type="checkbox" data-id save-id> Normalize English</label><br>
       <label title="Phrase Search: Only show words when they are in the requested order."><input id="ordered" type="checkbox" data-id save-id> Ordered</label><br>
       <label title="Phrase Search: Only show words when they are adjacent."><input id="adjacent" type="checkbox" data-id save-id> Adjacent</label><br>
-      <button onclick="saveSettings('save-id')">Save Search Settings</button><br>
-      <button onclick="resetSettings('save-id')">Reset Search Settings</button>
+      <button class="buttonInDropdown" onclick="saveSettings('save-id')">Save Search Settings</button><br>
+      <button class="buttonInDropdown" onclick="resetSettings('save-id')">Reset Search Settings</button>
     </div>
+  </span>
+    <span class="head-group">
+    Copy text:&nbsp;<button onclick="copyText('grk')">Greek</button>
+    <button onclick="copyText('eng')">English</button>
   </span>
   <span class="head-group">
     Save as URL:&nbsp;<button title="Share current passage selection." onclick="encodeRangeToUrl()">Verse Selection</button>
     <button title="Share current search term and settings." onclick="saveUrlSearch()">Search Term/Settings</button>
     <button title="Go back to default URL" onclick="resetUrl()">Reset</button>
-  </span>
-  <span class="head-group">
-    Copy text:&nbsp;<button onclick="copyText('grk')">Greek</button>
-    <button onclick="copyText('eng')">English</button>
   </span>
   <span class="head-group-wrapper">
     <span class="head-group2">
