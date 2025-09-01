@@ -904,7 +904,7 @@ function processFormatting(input) {
   const reducedStyle = 'font-size: var(--font-size-reduced); color: rgb(50, 100, 50);';
 
   function smallText(str) {
-    return `<span class="formatted-chunk subtext" style="${reducedStyle}">${str}</span>`;
+    return `<span class="formatted-chunk subtext">${str}</span>`;
   }
 
   function processBracketed(text, beforeChar, afterChar) {
@@ -929,7 +929,7 @@ function processFormatting(input) {
 
   function toSubscript(str) {
     // use a span so styling matches smallText; vertical-align keeps it “sub”
-    return `<span class="formatted-chunk subscript" style="${reducedStyle}; vertical-align: sub;">${str}</span>`;
+    return `<span class="formatted-chunk subscript">${str}</span>`;
   }
 
   // Define special replacements
@@ -1370,7 +1370,6 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
     labelEl.textContent = displayLabel + ":";
 
     // Make it clickable: on click, put fullLabel in search and trigger search
-    labelEl.style.cursor = "pointer";
     labelEl.addEventListener("click", () => {
       elements.searchInput.value = fullLabel;
       searchVerses();

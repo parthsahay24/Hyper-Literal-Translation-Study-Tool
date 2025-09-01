@@ -193,9 +193,15 @@ body {
 }
 
 .formatted-chunk.subtext,
-.formatted-chunk.subscript {
+.formatted-chunk.subscript,
+.formatted-chunk.bracket {
   font-size: var(--font-size-reduced);
-  color: rgb(50, 100, 50);
+  color: rgb(60, 70, 60);
+}
+
+.formatted-chunk.bracket {
+  display:inline-block; 
+  transform:scaleX(0.8);
 }
 
 .formatted-chunk.subscript {
@@ -268,6 +274,8 @@ body {
   font-weight: bold;
   margin-right: 0.5em;
   align-self: center;
+  font-size: var(--font-size-reduced);
+  cursor: pointer;
 }
 
 select {
@@ -547,7 +555,7 @@ let lookupdb = [["kai","Conj",2532,"kai","and",6229],["o","Art-NMS",3588,"o","th
 
 // Compile-time timestamps
 document.getElementById("data_last_updated")?.setAttribute("data-compile-lastmod", "Sun, 31 Aug 2025 00:14:51 GMT");
-document.getElementById("tool_last_updated")?.setAttribute("data-compile-lastmod", "Mon, 01 Sep 2025 12:49:59 GMT");
+document.getElementById("tool_last_updated")?.setAttribute("data-compile-lastmod", "Mon, 01 Sep 2025 13:13:59 GMT");
 
 // App code
 const greekToUnicode = {
@@ -1455,7 +1463,7 @@ function processFormatting(input) {
   const reducedStyle = 'font-size: var(--font-size-reduced); color: rgb(50, 100, 50);';
 
   function smallText(str) {
-    return `<span class="formatted-chunk subtext" style="${reducedStyle}">${str}</span>`;
+    return `<span class="formatted-chunk subtext">${str}</span>`;
   }
 
   function processBracketed(text, beforeChar, afterChar) {
@@ -1480,7 +1488,7 @@ function processFormatting(input) {
 
   function toSubscript(str) {
     // use a span so styling matches smallText; vertical-align keeps it “sub”
-    return `<span class="formatted-chunk subscript" style="${reducedStyle}; vertical-align: sub;">${str}</span>`;
+    return `<span class="formatted-chunk subscript">${str}</span>`;
   }
 
   // Define special replacements
@@ -1921,7 +1929,6 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
     labelEl.textContent = displayLabel + ":";
 
     // Make it clickable: on click, put fullLabel in search and trigger search
-    labelEl.style.cursor = "pointer";
     labelEl.addEventListener("click", () => {
       elements.searchInput.value = fullLabel;
       searchVerses();
