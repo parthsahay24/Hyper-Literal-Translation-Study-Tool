@@ -2039,11 +2039,11 @@ function matchMorphTag(pattern, tag) {
     }
 
     // Segment-level wildcard
-    if (patSeg === "*" || patSeg === "-*") return true;
+    if (patSeg === "_" || patSeg === "-_") return true;
 
     let p = 0, t = 0;
     while (p < patSeg.length) {
-      if (patSeg[p] === "*") {
+      if (patSeg[p] === "_") {
         // Match one character if available, otherwise zero
         if (t < tagSeg.length) t++;
         p++;
@@ -2058,8 +2058,8 @@ function matchMorphTag(pattern, tag) {
       p++; t++;
     }
 
-    // All pattern consumed; extra characters in tag are allowed only if last pat char was *
-    if (t < tagSeg.length && patSeg[patSeg.length - 1] !== "*") {
+    // All pattern consumed; extra characters in tag are allowed only if last pat char was _
+    if (t < tagSeg.length && patSeg[patSeg.length - 1] !== "_") {
       return false;
     }
 
