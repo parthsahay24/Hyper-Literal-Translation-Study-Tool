@@ -219,6 +219,7 @@ let lookupdb;
 function loadBaseJson() {
   const params = new URLSearchParams(window.location.search);
   const dbName = params.get("db") === "basex" ? "basex.json" : "base.json";
+  const lookupsName = params.get("db") === "basex" ? "lookupsex.json" : "lookups.json";
 
   // If already available (compiled build), skip fetch
   if (typeof baseData !== "undefined" && typeof lookupdb !== "undefined" && dbName !== "basex.json") {
@@ -253,7 +254,7 @@ function loadBaseJson() {
   }
 
   const baseUrl = dbName + '?t=' + Date.now();
-  const lookupUrl = 'lookups.json?t=' + Date.now();
+  const lookupUrl = lookupsName + '?t=' + Date.now();
 
   Promise.all([
     fetch(baseUrl).then(res => {
@@ -491,22 +492,32 @@ function setupEventListeners() {
   });
 
   elements.searchInput.addEventListener("input", function (e) {
-    if (!elements.convertToGreek.checked) return;
-
     const input = e.target;
-    const originalValue = input.value;
+    let originalValue = input.value;
 
-    // Convert using latinToGreek
-    let converted = "";
-    for (const char of originalValue.toLowerCase()) {
-      converted += latinToGreek[char] || char;  // fall back to original if no match
-    }
+    // Always remove Greek diacritical marks
+    // Normalize to NFD (decomposed), then strip combining marks
+    originalValue = originalValue.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-    // Avoid cursor jumping by replacing only if different
-    if (converted !== originalValue) {
-      input.value = converted;
+    // If convertToGreek is checked, convert Latin chars to Greek
+    if (elements.convertToGreek.checked) {
+      let converted = "";
+      for (const char of originalValue.toLowerCase()) {
+        converted += latinToGreek[char] || char;  // fallback if no match
+      }
+
+      // Avoid cursor jumping by replacing only if different
+      if (converted !== input.value) {
+        input.value = converted;
+      }
+    } else {
+      // Even if not converting, update the value if it had diacritics removed
+      if (originalValue !== input.value) {
+        input.value = originalValue;
+      }
     }
   });
+
 
   window.addEventListener('click', function (e) {
     const isMenuPopup = e.target.closest('.menu-popup');
@@ -1158,6 +1169,32 @@ function render(customVerses = null) {
         if (typeof ident === "string" && /^[A-Za-z]+$/.test(ident)) {
           // ident is actually the greek word from LXX auto-fill.
           grk = ident;
+          // ident is blank → collect ALL entries for this grk
+          const matches = Object.entries(lookupdb)
+          .filter(([, val]) => val[0] === ident) // compare against Greek in val[0]
+          .map(([, val]) => val);
+
+          if (matches.length > 0) {
+            const pcodeSet = new Set();
+            const strongsSet = new Set();
+            const rootsSet = new Set();
+            const rEngSet = new Set();
+            let totalCount = 0;
+
+            for (const [_, pc, st, rt, re, ct] of matches) {
+              if (pc) pcodeSet.add(pc);
+              if (st) strongsSet.add(st);
+              if (rt) rootsSet.add(rt);
+              if (re) rEngSet.add(re);
+              if (ct) totalCount += ct || 0;
+            }
+
+            pcode = [...pcodeSet].join(", ");
+            strongs = [...strongsSet].join(", ");
+            roots = [...rootsSet].join(", ");
+            rEng = [...rEngSet].join(", ");
+            count = totalCount; // END LXX Helper
+          }
         } else {
           // ident is numeric, get data from lookupdb
           const lookupData = lookupdb[ident] || [];   
@@ -1195,7 +1232,7 @@ function render(customVerses = null) {
 
           span.addEventListener("mouseenter", showPopup);
           span.addEventListener("mouseleave", hidePopup);
-          span.addEventListener("touchstart", showPopupTouchStart);
+          span.addEventListener("touchstart", showPopupTouchStart, { passive: true });
           span.addEventListener("touchend", showPopupTouchEnd);
 
           if (!isRoot) {
@@ -1436,7 +1473,7 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
       // Normal case: lookup by ident
       lookupData = lookupdb[ident] || [];
       [grk, pcode, strongs, roots, rEng, count] = lookupData; //Refactor added grk to beginning.
-    } else if (ident != -1) {
+    } else if (ident != -1) { // BEGIN LXX Helper
       grk = ident;
       // ident is blank → collect ALL entries for this grk
       const matches = Object.entries(lookupdb)
@@ -1462,7 +1499,7 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
         strongs = [...strongsSet].join(", ");
         roots = [...rootsSet].join(", ");
         rEng = [...rEngSet].join(", ");
-        count = totalCount;
+        count = totalCount; // END LXX Helper
       } else {
         // Nothing found → default empty values
         pcode = strongs = roots = rEng = "";
@@ -1503,6 +1540,11 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
             (elements.exactMatch.checked 
               ? pEng.toLowerCase() === term.toLowerCase()
               : pEng.toLowerCase().includes(term.toLowerCase())) 
+          ) || ( // BEGIN LXX Helper
+            grk &&
+            (elements.exactMatch.checked 
+              ? toGreek(grk) === term.toLowerCase()
+              : toGreek(grk).includes(term.toLowerCase())) // END LXX Helper
           )
         ) {
           matched = true;
@@ -1523,7 +1565,7 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
 
     wordEl.addEventListener("mouseenter", showPopup);
     wordEl.addEventListener("mouseleave", hidePopup);
-    wordEl.addEventListener("touchstart", showPopupTouchStart);
+    wordEl.addEventListener("touchstart", showPopupTouchStart, { passive: true });
     wordEl.addEventListener("touchend", showPopupTouchEnd);
 
     let hasContent = false;
@@ -2009,7 +2051,7 @@ function parseCGPN(cgpn) {
   };
 
   const numberMap = {
-    'S': 'singular', 'P': 'plural'
+    'S': 'singular', 'P': 'plural', 'T': 'singular/plural'
   };
 
   const options = cgpn.split('/').map(option => {
@@ -2322,6 +2364,7 @@ function setReferenceRange({ b, c, v }) {
 
 function handleLookupMatches(searchTerm, matches) {
   const uniqueWords = elements.uniqueWords.checked;
+  const exact = elements.exactMatch.checked; // LXX Helper only
 
   // figure out paging bounds
   const startIndex = searchState.boundaries[searchState.page];
@@ -2367,7 +2410,17 @@ function handleLookupMatches(searchTerm, matches) {
           matches.push([ident, eng, `${bookAbb[b]} ${c + 1}:${v + 1}`]);
         }
         count++;
-      }
+      } else if (!Number.isInteger(ident)) { // If ident is stored as a greek word. BEGIN LXX Helper
+        const word = toGreek(ident);
+        const isMatch = exact ? word === searchTerm : word.includes(searchTerm);
+
+        if (isMatch) {
+          if (count >= startIndex && count < endIndex) {
+            matches.push([ident, eng, `${bookAbb[b]} ${c + 1}:${v + 1}`]);
+          }
+          count++;
+        }
+      } // END LXX Helper
     });
   });
 
@@ -2435,6 +2488,11 @@ function checkWordSequence(allWords, latinWords, isGreek, matchIdent = false) {
   // Helper to test if a verse word matches a search word index
   function tokenMatchesWord(tokenVal, searchWord) {
     if (!tokenVal || !searchWord) return false;
+
+    if (!Number.isInteger(tokenVal[0])) { // BEGIN LXX Helper
+      grkToken = toGreek(tokenVal[0])
+      return exact ? (grkToken === searchWord) : grkToken.includes(searchWord);
+    } // END LXX Helper
 
     // searchWord is now either an array of idents or a single latin word.
     if (Array.isArray(searchWord)) {
@@ -2553,11 +2611,29 @@ function multiWordSearch(searchStr, lookupInd) {
     let normTerm = term;
     const inLookups = lookInLookups(term);
 
+    // Start with an array to collect all matches
+    let matches = []; // LXX Hhelper only
+
     // Case: Latin, not in lookups, and not normalized → raw term search
     if (!/[α-ω]/i.test(term) && !inLookups && !normalized) {
       const lowerTerm = typeof normTerm === "string" ? normTerm.toLowerCase() : normTerm;
       return lowerTerm;
-    }
+    } else if (/[α-ω]/i.test(term) && !inLookups && term[0] !== '.') { // BEGIN LXX Helper
+      matches.push(term);
+    } 
+    
+    // Always add matches from lookupdb
+    const lookupMatches = lookupdb
+      .map((value, i) => {
+        if (!value) return null;
+        if (matchesLookup(term, value)) return i;
+        return null;
+      })
+      .filter(i => i !== null);
+
+    matches.push(...lookupMatches); // merge arrays
+
+    return matches;// END LXX Helper
 
     return lookupdb
       .map((value, i) => {
@@ -2585,11 +2661,14 @@ function multiWordSearch(searchStr, lookupInd) {
       if (Array.isArray(shortestLookup)) {
         // Standard: match by ident index
         return shortestLookup.includes(ident);
-      } else if (typeof shortestLookup === "string") {
+      } else if (typeof shortestLookup === "string" && !/[α-ω]/i.test(shortestLookup)) {
         // Fallback: match by English text
         const wordEng = (wordEnglish || "").toLowerCase();
         return exact ? wordEng === shortestLookup : wordEng.includes(shortestLookup);
-      }
+      } else if (!Number.isInteger(ident)) { // If ident is stored as a greek word. BEGIN LXX Helper
+        const wordG = toGreek(ident);
+        return exact ? wordG === shortestLookup : wordG.includes(shortestLookup);
+      } // END LXX Helper
       return false;
     });
 
