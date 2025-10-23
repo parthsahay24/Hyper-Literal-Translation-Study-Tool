@@ -1210,8 +1210,9 @@ function render(customVerses = null) {
           // Make clickable
           refEl.style.cursor = "pointer";
           refEl.addEventListener("click", () => {
-            elements.searchInput.value = ref;
-            searchVerses();
+            //elements.searchInput.value = ref;
+            //searchVerses();
+            refSearch(ref);
           });
 
           row.appendChild(refEl);
@@ -1230,7 +1231,7 @@ function render(customVerses = null) {
           span.dataset.roots = roots || "";
           span.dataset.count = count || "";
 
-          span.addEventListener("mouseenter", showPopup);
+          span.addEventListener("mouseenter", showPopupDelay);
           span.addEventListener("mouseleave", hidePopup);
           span.addEventListener("touchstart", showPopupTouchStart, { passive: true });
           span.addEventListener("touchend", showPopupTouchEnd);
@@ -1387,7 +1388,7 @@ function createClickableSpan(className, text, wordEl) {
   span.addEventListener("click", (e) => {
     const isPopupActive = wordEl === currentPopup;
     const timeSincePopup = Date.now() - popupActivatedAt;
-
+    //console.log(currentPopup);
     if (isPopupActive && timeSincePopup > 200) {
       const term = span.dataset.search || span.textContent.trim();
       elements.searchInput.value = term;
@@ -1445,8 +1446,9 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
 
     // Make it clickable: on click, put fullLabel in search and trigger search
     labelEl.addEventListener("click", () => {
-      elements.searchInput.value = fullLabel;
-      searchVerses();
+      //elements.searchInput.value = fullLabel;
+      //searchVerses();
+      refSearch(fullLabel);
     });
 
     verseEl.appendChild(labelEl);
@@ -1563,7 +1565,7 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
     wordEl.dataset.roots = roots || "";
     wordEl.dataset.count = count || "";
 
-    wordEl.addEventListener("mouseenter", showPopup);
+    wordEl.addEventListener("mouseenter", showPopupDelay);
     wordEl.addEventListener("mouseleave", hidePopup);
     wordEl.addEventListener("touchstart", showPopupTouchStart, { passive: true });
     wordEl.addEventListener("touchend", showPopupTouchEnd);
@@ -1749,10 +1751,13 @@ function positionPopupRelativeToElement(popup, targetEl) {
 let popupTimeout = null;
 let currentPopup = null; // Track the currently active popup element
 let popupActivatedAt = 0;
+let popupDelayTimer = null;
+
 function showPopup(e) {
-  currentPopup = e.currentTarget;
-  popupActivatedAt = Date.now();  // Track when it was shown
+  clearTimeout(popupDelayTimer);
   clearTimeout(popupTimeout);
+  //currentPopup = e.target;
+  //popupActivatedAt = Date.now();  // Track when it was shown
   const { showGreek, showEnglish, showPcode, showStrongs, showRoots } = getDisplayOptions();
 
   const target = e.currentTarget || e.target;
@@ -1853,7 +1858,23 @@ function showPopup(e) {
   positionPopupRelativeToElement(popup, wordEl);
   popup.style.display = "block";
 }
+
+function showPopupDelay(event) {
+  currentPopup = event.target;
+  popupActivatedAt = Date.now();  // Track when it was shown
+  //console.log(currentPopup);
+  // Clear any previous timer (if user quickly moves between elements)
+  clearTimeout(popupTimeout);
+  clearTimeout(popupDelayTimer);
+  
+  // Wait 300 ms before calling your original showPopup()
+  popupDelayTimer = setTimeout(() => {
+    showPopup(event); // your existing popup function
+  }, 100);
+}
+
 function hidePopup() {
+  clearTimeout(popupDelayTimer);
   popupTimeout = setTimeout(() => {
     document.getElementById("wordPopup").style.display = "none";
   }, 300); // small delay to allow hovering over popup
@@ -1889,6 +1910,8 @@ function showPopupTouchEnd(e) {
     if (isVisible) {
       popup.style.display = "none";
     } else {
+      currentPopup = e.target;
+      popupActivatedAt = Date.now();  // Track when it was shown
       showPopup(e);  // You must make sure showPopup sets style.display = "block"
     }
   }
@@ -2264,6 +2287,16 @@ let searchState = {
   boundaries: [0]      // array of indexes where each page starts (0, x, y, …)
 };
 
+function refSearch(searchTerm) {
+    // Reference search
+  const ref = tryParseReference(searchTerm);
+  if (ref) {
+    setReferenceRange(ref);
+    render();
+    return;
+  }
+}
+
 function searchVerses() {
   const searchTerm = elements.searchInput.value.trim();
   const exact = elements.exactMatch.checked;
@@ -2632,7 +2665,7 @@ function multiWordSearch(searchStr, lookupInd) {
       .filter(i => i !== null);
 
     matches.push(...lookupMatches); // merge arrays
-
+    
     return matches;// END LXX Helper
 
     return lookupdb
@@ -2660,15 +2693,16 @@ function multiWordSearch(searchStr, lookupInd) {
     const containsWord = verseWords.some(([ident, wordEnglish]) => {
       if (Array.isArray(shortestLookup)) {
         // Standard: match by ident index
+        if (!Number.isInteger(ident)) { // If ident is stored as a greek word. BEGIN LXX Helper
+          const wordG = toGreek(ident);
+          return exact ? wordG === shortestLookup[0] : wordG.includes(shortestLookup[0]);
+        } // END LXX Helper
         return shortestLookup.includes(ident);
       } else if (typeof shortestLookup === "string" && !/[α-ω]/i.test(shortestLookup)) {
         // Fallback: match by English text
         const wordEng = (wordEnglish || "").toLowerCase();
         return exact ? wordEng === shortestLookup : wordEng.includes(shortestLookup);
-      } else if (!Number.isInteger(ident)) { // If ident is stored as a greek word. BEGIN LXX Helper
-        const wordG = toGreek(ident);
-        return exact ? wordG === shortestLookup : wordG.includes(shortestLookup);
-      } // END LXX Helper
+      } 
       return false;
     });
 
