@@ -340,6 +340,10 @@ button {
   transition: background-color 0.2s ease;
 }
 
+#greyFwdBackBtn {
+  background-color: #fdfdf5;
+}
+
 button:hover {
   background-color: #ddd6c4;   /* darker on hover */
 }

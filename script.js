@@ -1092,13 +1092,21 @@ function getDisplayOptions() {
 
 function insertFwdBack(container) {
   const backBtn = document.createElement("button");
-  backBtn.id = "pageBackBtn";
+  if (searchState.page === 0) {
+    backBtn.id = "greyFwdBackBtn";
+  } else {
+    backBtn.id = "pageBackBtn";
+  }
   backBtn.title = "Previous Search Results Page";
   backBtn.textContent = "← Page";
   backBtn.onclick = prevPage;
 
   const forwardBtn = document.createElement("button");
-  forwardBtn.id = "pageForwardBtn";
+  if (searchState.page + 1 >= searchState.boundaries.length) {
+    forwardBtn.id = "greyFwdBackBtn";
+  } else {
+    forwardBtn.id = "pageForwardBtn";
+  }
   forwardBtn.title = "Next Search Results Page";
   forwardBtn.textContent = "Page →";
   forwardBtn.onclick = nextPage;
@@ -1894,6 +1902,7 @@ function showPopup(e) {
       const text = event.target.dataset.search.trim();
       if (text) {
         elements.searchInput.value = text;
+        popup.style.display = 'none';
         searchVerses();
       }
     });
@@ -1901,6 +1910,22 @@ function showPopup(e) {
 
   positionPopupRelativeToElement(popup, wordEl);
   popup.style.display = "block";
+
+  function handlePopupClose(event) {
+    event.stopPropagation(); // 👈 Stop bubbling
+    event.preventDefault();  // 👈 Prevent click emulation
+    if (!event.target.closest('.popup-clickable')) {
+      popup.style.display = 'none';
+    }
+  }
+
+  // Remove any existing listeners first (avoids stacking duplicates)
+  popup.removeEventListener('click', handlePopupClose);
+  popup.removeEventListener('touchend', handlePopupClose);
+
+  // Add fresh listeners for both desktop and mobile
+  popup.addEventListener('click', handlePopupClose);
+  popup.addEventListener('touchend', handlePopupClose);
 }
 
 function showPopupDelay(event) {
@@ -1948,6 +1973,8 @@ function showPopupTouchEnd(e) {
   const distance = Math.sqrt(dx * dx + dy * dy);
 
   if (elapsed < TAP_MAX_TIME && distance < TAP_MAX_DIST) {
+    e.stopPropagation(); // 👈 Stop bubbling
+    e.preventDefault();  // 👈 Prevent click emulation
     const popup = document.getElementById("wordPopup");
     const isVisible = window.getComputedStyle(popup).display !== "none";
 
@@ -3044,17 +3071,17 @@ const cancelQueryBtn = document.getElementById("cancelQueryBtn");
 const searchInput = document.getElementById("searchInput");
 
 const termOperators = {
-  "": "",           // no operator
-  "EQUALS": "=",
-  "NOT": "~",
-  "NOT EQUALS": "~="  // optional
+  "contains": "",           // no operator
+  "is exactly": "=",
+  "without": "~",
+  "without exactly": "~="  // optional
 };
 
 const connectorOperators = {
   "": "",
-  "AND": "+",
-  "OR": "|",
-  "SPACE": " "  // space creates new term-set
+  "and": "+",
+  "or": "|",
+  "[next word]": " "  // space creates new term-set
 };
 
 function openQueryBuilder() {
@@ -3081,23 +3108,23 @@ function openQueryBuilder() {
         let termOp = "";
         let termValue = part;
         if (part.startsWith("~=")) {
-          termOp = "NOT EQUALS";
+          termOp = "without exactly";
           termValue = part.slice(2);
         } else if (part.startsWith("~")) {
-          termOp = "NOT";
+          termOp = "without";
           termValue = part.slice(1);
         } else if (part.startsWith("=")) {
-          termOp = "EQUALS";
+          termOp = "is exactly";
           termValue = part.slice(1);
         }
 
         // Determine the following connector
         let connector = "";
         const next = parts[i + 1];
-        if (next === "+") connector = "AND";
-        else if (next === "|") connector = "OR";
+        if (next === "+") connector = "and";
+        else if (next === "|") connector = "or";
         else if (setIndex < termSets.length - 1 && i === parts.length - 1)
-          connector = "SPACE"; // end of set → new set follows
+          connector = "[next word]"; // end of set → new set follows
 
         addTermRow(termOp, termValue, connector);
       }
@@ -3185,6 +3212,7 @@ function generateQuery() {
 
   searchInput.value = searchStr;
   closeQueryBuilder();
+  searchVerses();
 }
 
 buildQueryBtn.addEventListener("click", openQueryBuilder);
