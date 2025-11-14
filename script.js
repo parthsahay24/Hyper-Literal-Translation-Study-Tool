@@ -1897,8 +1897,21 @@ function showPopup(e) {
 
   // Add click listener to the popup for only clickable spans
   popup.querySelectorAll('.popup-clickable').forEach(span => {
+    // Desktop
     span.addEventListener('click', (event) => {
-      event.stopPropagation(); // prevent other click handlers
+      event.stopPropagation();
+      const text = event.target.dataset.search.trim();
+      if (text) {
+        elements.searchInput.value = text;
+        popup.style.display = 'none';
+        searchVerses();
+      }
+    });
+
+    // Mobile
+    span.addEventListener('touchend', (event) => {
+      event.stopPropagation();
+      event.preventDefault();
       const text = event.target.dataset.search.trim();
       if (text) {
         elements.searchInput.value = text;
