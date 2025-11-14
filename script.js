@@ -19,6 +19,7 @@ const greekToTranslit = {
 };
 
 const posMap = {
+  '_': 'unknown',
   'N': 'noun',
   'V': 'verb',
   'Adj': 'adjective',
@@ -2209,7 +2210,7 @@ function matchMorphTag(pattern, tag) {
   const tagParts = tag.split('-');
 
   // Always compare part of speech
-  if (patParts[0] !== tagParts[0]) return false;
+  if (patParts[0] !== tagParts[0] && patParts[0] != '_') return false;
 
   // Helper to match a segment character-by-character
   function matchSegment(patSeg, tagSeg) {
