@@ -251,7 +251,8 @@ function loadBaseJson() {
     } else {
       render();
     }
-    getCount();
+    // getCount is depreciated now that the NT is complete. If we do the OT, we will re-enable it.
+    // getCount();
     return;
   }
 
@@ -293,7 +294,8 @@ function loadBaseJson() {
     } else {
       render();
     }
-    getCount();
+    // getCount is depreciated now that the NT is complete. If we do the OT, we will re-enable it.
+    // getCount();
   })
   .catch(err => {
     console.error("Error loading JSON files:", err);
@@ -301,6 +303,7 @@ function loadBaseJson() {
 }
 
 function getCount() {
+  // Used to determine progress of translation. Maintain this code in case we do OT later.
   let countWithIdent = 0;
 
   for (let b = 39; b <= 65; b++) {
