@@ -3354,7 +3354,8 @@ document.addEventListener("keydown", function (e) {
   if (e.key === "ArrowLeft")  delta = -1;
 
   // Vertical arrows
-  if (e.key === "ArrowUp" || e.key === "ArrowDown") delta = 4;
+  if (e.key === "ArrowUp") delta = 4;
+  if (e.key === "ArrowDown") delta = -4;
 
   // Modifiers
   if (delta !== null) {

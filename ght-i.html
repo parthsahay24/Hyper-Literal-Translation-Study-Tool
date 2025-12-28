@@ -760,7 +760,7 @@ let lookupdb = [["kai","Conj",2532,"kai","and",8191],["o","Art-NMS",3588,"o","th
 
 // Compile-time timestamps
 document.getElementById("data_last_updated")?.setAttribute("data-compile-lastmod", "Sat, 27 Dec 2025 13:09:10 GMT");
-document.getElementById("tool_last_updated")?.setAttribute("data-compile-lastmod", "Sat, 27 Dec 2025 18:27:24 GMT");
+document.getElementById("tool_last_updated")?.setAttribute("data-compile-lastmod", "Sat, 27 Dec 2025 18:34:12 GMT");
 
 // App code
 const greekToUnicode = {
@@ -4147,6 +4147,7 @@ loadBaseJson();
     <p>17 Dec: Added 'numeral' parsing code to accunt for Rev 13:18 '666'.</p>
     <p>25 Dec: Added collapsing for the header, the reference group and the search group in consideration of mobile browser screen real estate.</p>
     <p>25 Dec: Added page navigation buttons that align to the current verse range.</p>
+    <p>27 Dec: Added navigation using arrow keys.</p>
     <h3>Selecting passages by reference:</h3>
     <p>Select your start and end book, chapter, and verse from "Start Ref" and "End Ref". </p>
     <p>You may manually adjust how many verses to show at a time to by changing 'Verse Range'. A 'Verse Range' of '1' will show one verse. </p>
@@ -4193,6 +4194,8 @@ loadBaseJson();
     <p>These buttons bring you to your last render state. It stores up to 100 renders in history.</p>
     <h3>Copy text:</h3>
     <p>For now, these only work for text showing on screen. They will copy all Greek or English text to your clipboard when you are verse-display mode.</p>
+    <h3>Contributors:</h3>
+    <p>Ben Holt: Suggestion for arrow key support.</p>
   </div>
   <button class="close-btn" onclick="toggleHelpPopup('helpPopup','helpButton')">Close</button>
 </div>
