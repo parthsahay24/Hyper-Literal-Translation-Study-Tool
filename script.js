@@ -599,6 +599,13 @@ function initializeSelections() {
         el.value = value;
       }
     }
+
+    // Apply header collapse state
+    const header = document.getElementById('header');
+    header?.classList.toggle('collapsed', settings.headerCollapsed);
+
+    // Apply headgroup collapse states
+    setCollapsedHeadGroups(settings.headGroupsCollapsed || []);
   }
 
   if (range?.gapInput > 0) {
@@ -2039,6 +2046,12 @@ function saveSettings(targetAttr = null) {
     }
   }
 
+  // Save header collapse state
+  settings.headerCollapsed = document.getElementById('header')?.classList.contains('collapsed') || false;
+
+  // Save collapsed headgroups
+  settings.headGroupsCollapsed = getCollapsedHeadGroups();
+
   localStorage.setItem("userSettings", JSON.stringify(settings));
 }
 
@@ -2059,6 +2072,8 @@ function resetSettings(targetAttr = null) {
 
     // Delete from settings
     delete settings[key];
+    delete settings.headerCollapsed;
+    delete settings.headGroupsCollapsed;
   }
 
   // Save updated settings back
@@ -3349,6 +3364,16 @@ function toggleHeader(e) {
 
 function toggleHeadGroups(inel) {
   document.getElementById(inel).classList.toggle('collapsed');
+}
+
+function getCollapsedHeadGroups() {
+  return [...document.querySelectorAll('.head-group-wrapper.collapsed')].map(el => el.id);
+}
+
+function setCollapsedHeadGroups(ids = []) {
+  document.querySelectorAll('.head-group-wrapper').forEach(el => {
+    el.classList.toggle('collapsed', ids.includes(el.id));
+  });
 }
 
 document.addEventListener("keydown", function (e) {
