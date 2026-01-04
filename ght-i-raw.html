@@ -37,15 +37,27 @@
       <div class="collapse-bar-horizontal" onclick="toggleHeader(event)" title="Collapse / Expand header"></div>
     </div>
   </div>
+  <div id="refStartPopup" class="popup ref-popup">
+    <div class="ref-col" id="StartBooks"></div>
+    <div class="ref-col" id="StartChapters"></div>
+    <div class="ref-col" id="StartVerses"></div>
+  </div>
+  <div id="refEndPopup" class="popup ref-popup">
+    <div class="ref-col" id="EndBooks"></div>
+    <div class="ref-col" id="EndChapters"></div>
+    <div class="ref-col" id="EndVerses"></div>
+  </div>
   <span class="head-group-wrapper" id="headWrapper">
-    <span class="collapse-bar" onclick="toggleHeadGroups('headWrapper')" title="Collapse / Expand controls"></span>
     <span class="head-group2">
       <label>Start Ref: </label>
     </span>
     <span class="head-group2 keep-visible">
-      <select id="bookStart" data-id ref-id></select>
-      <select id="chapterStart" data-id ref-id></select>
-      <select id="verseStart" data-id ref-id></select>
+      <div class="ref-picker" id="startPicker" data-target="Start">
+        <button class="ref-display" data-toggle-popup onclick="togglePopup('refStartPopup')">Select…</button>
+      </div>
+      <select id="bookStart" data-id ref-id hidden></select>
+      <select id="chapterStart" data-id ref-id hidden></select>
+      <select id="verseStart" data-id ref-id hidden></select>
       <label title="Select how many verses to show during context searches or when fixing impossible reference range selections." for="gapInput">&nbsp;Show&nbsp;</label>
       <input id="gapInput" type="number" value="1" min="1" step="1" style="width: 30px;" data-id ref-id save-id>&nbsp;verses
     </span>
@@ -54,14 +66,19 @@
       <button onclick="render()">Load</button>
     </span>
     <span class="head-group2">
-      <label>End Ref:&nbsp;&nbsp; <select id="bookEnd" data-id ref-id></select></label>
-      <select id="chapterEnd" data-id ref-id></select>
-      <select id="verseEnd" data-id ref-id></select>
+      <label>End Ref:&nbsp;&nbsp;&nbsp; </label>
+      <div class="ref-picker" id="endPicker" data-target="End">
+        <button class="ref-display" data-toggle-popup onclick="togglePopup('refEndPopup')">Select…</button>
+      </div>
+      <select id="bookEnd" data-id ref-id hidden></select>
+      <select id="chapterEnd" data-id ref-id hidden></select>
+      <select id="verseEnd" data-id ref-id hidden></select>
     </span>
     <span class="head-group2">
       <button onclick="saveSettings('ref-id')">Save Reference</button>
       <button onclick="resetSettings('ref-id')">Reset Reference</button>
     </span>
+    <span class="collapse-bar" onclick="toggleHeadGroups('headWrapper')" title="Collapse / Expand controls"></span>
   </span>
   <span class="head-group">
     Settings:&nbsp;
@@ -156,7 +173,6 @@
     </div>
   </span>
   <span class="head-group-wrapper" id="headWrapper2">
-    <span class="collapse-bar" onclick="toggleHeadGroups('headWrapper2')" title="Collapse / Expand controls"></span>
     <span class="head-group2 keep-visible">
       <input type="text" id="searchInput" placeholder="Enter search term" data-id save-id/>
       <button id="searchBtn" data-id>Search</button>
@@ -188,6 +204,7 @@
         </div>
       </div>
     </span>
+    <span class="collapse-bar" onclick="toggleHeadGroups('headWrapper2')" title="Collapse / Expand controls"></span>
   </span>
   <div id="output"></div>
   <div id="wordPopup" class="popup"
@@ -197,12 +214,12 @@
   <body>
     <div id="navHeader">
     <!-- <button onclick="updateBCV(-3)">◀Book</button> -->
-    <button onclick="updateBCV(-2)">◀Chapter</button>
-    <button onclick="updateBCV(-4)">◀Page</button>
-    <button onclick="updateBCV(-1)">◀Verse</button>
-    <button onclick="updateBCV(1)">Verse▶</button>
-    <button onclick="updateBCV(4)">Page▶</button>
-    <button onclick="updateBCV(2)">Chapter▶</button>
+    <button onclick="updateBCV(-2)" title="Navigate back one chapter. Use shift + left arrow.">◀Chapter</button>
+    <button onclick="updateBCV(-4)" title="Navigate back one page. Use up arrow.">◀Page</button>
+    <button onclick="updateBCV(-1)" title="Navigate back one verse. Use left arrow.">◀Verse</button>
+    <button onclick="updateBCV(1)" title="Navigate back one verse. Use right arrow.">Verse▶</button>
+    <button onclick="updateBCV(4)" title="Navigate back one page. Use down arrow.">Page▶</button>
+    <button onclick="updateBCV(2)" title="Navigate forward one chapter. Use shift + right arrow.">Chapter▶</button>
     <!-- <button onclick="updateBCV(3)">Book▶</button> -->
   </div>
   <!-- History Buttons -->
@@ -218,10 +235,11 @@
       <a href="http://ghukek.com/ght.html" style="font-size: 0.6em; margin-left: 0.5em;">(More info and contact)</a>
     </h2>
     <h3>Newest feature:</h3>
-    <p>17 Dec: Added 'numeral' parsing code to accunt for Rev 13:18 '666'.</p>
     <p>25 Dec: Added collapsing for the header, the reference group and the search group in consideration of mobile browser screen real estate.</p>
-    <p>25 Dec: Added page navigation buttons that align to the current verse range.</p>
+    <p>25 Dec: Added page navigation buttons that navigated according to the current verse range.</p>
     <p>27 Dec: Added navigation using arrow keys.</p>
+    <p>1 Jan: Added typeface selection toggle, swapped to sliders for font size, added padding slider, added word border toggle.</p>
+    <p>3-4 Jan: Added fancy reference selection box.</p>
     <h3>Selecting passages by reference:</h3>
     <p>Select your start and end book, chapter, and verse from "Start Ref" and "End Ref". </p>
     <p>You may manually adjust how many verses to show at a time to by changing 'Verse Range'. A 'Verse Range' of '1' will show one verse. </p>
@@ -264,8 +282,11 @@
     <p>The information listed above is a bit technical. I encourage you to use my "Build Query" tool to assist you. Experiment with it. This search function is extremely powerful.</p>
     <h3>Sharing:</h3>
     <p>The tool can save the current reference selection to the URL so that the user can share a passage via link. Or, the user can share a particular search result. See the 'Save as URL:' buttons.</p>
-    <h3>Back and Forward:</h3>
-    <p>These buttons bring you to your last render state. It stores up to 100 renders in history.</p>
+    <h3>Navigation:</h3>
+    <p>The back and forward buttons at the top right of the page bring you to your last render state. It stores up to 100 renders in history.</p>
+    <p>The navigation buttons at the bottom of the page are relatively self-explanatory. They bring you forward or back by one chapter, page, or verse. A page is defined as the number of verses currently rendered.</p>
+    <p>You can also use navigation arrow keys to navigate book, chapter, page, and verse. Use the left /right arrow keys for the verse, and the up/down arrow keys for the page. Shift + left/right moves the chapter, and ctrl + left/right moves the book.</p>
+    <p>When searching, an additional page navigation button may appear, showing that you have more search results than the current maximum per-page. You can use the buttons or the left/right or the up/down arrow keys.</p>
     <h3>Copy text:</h3>
     <p>For now, these only work for text showing on screen. They will copy all Greek or English text to your clipboard when you are verse-display mode.</p>
     <h3>Contributors:</h3>

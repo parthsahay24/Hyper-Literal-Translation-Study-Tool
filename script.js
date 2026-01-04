@@ -84,8 +84,8 @@ const bookAbb = [
   "Mark", "Luke", "John", "Acts", "Rom",
   "1Cor", "2Cor", "Gal", "Eph", "Phil",
   "Col", "1Thes", "2Thes", "1Tim", "2Tim",
-  "Tit", "Phlm", "Heb", "James", "1Pet",
-  "2Pet", "1Jon", "2Jon", "3Jon", "Jude", "Rev"
+  "Tit", "Phm", "Heb", "James", "1Pet",
+  "2Pet", "1John", "2John", "3John", "Jude", "Rev"
 ];
 
 function toGreek(str) {
@@ -110,30 +110,33 @@ function togglePopup(id) {
   });
 
   const popup = document.getElementById(id);
-  const isVisible = popup.style.display === 'block';
-  popup.style.display = isVisible ? 'none' : 'block';
+  const isVisible = window.getComputedStyle(popup).display !== 'none';
 
-  if (!isVisible) {
-    // Reposition near the button that triggered it
-    const button = document.querySelector(`button[onclick="togglePopup('${id}')"]`);
-    if (button) {
-      const rect = button.getBoundingClientRect();
-      popup.style.top = `${rect.bottom + window.scrollY}px`;
+  if (isVisible) {
+    popup.style.display = 'none';
+    return;
+  }
 
-      // Default left position
-      let left = rect.left + window.scrollX;
+  // Determine preferred display type
+  const displayType = popup.classList.contains('ref-popup') ? 'grid' : 'block';
+  popup.style.display = displayType;
+  // Force layout so offsetWidth is correct
+  popup.getBoundingClientRect();
 
-      // Measure popup width
-      const popupWidth = popup.offsetWidth || 280; // fallback to your max-width
-      const viewportWidth = window.innerWidth;
+  const button = document.querySelector(`[data-toggle-popup][onclick*="'${id}'"]`);
+  if (button) {
+    const rect = button.getBoundingClientRect();
+    popup.style.top = `${rect.bottom + window.scrollY}px`;
 
-      // If it overflows, adjust left so it fits
-      if (left + popupWidth > viewportWidth - 10) {
-        left = viewportWidth - popupWidth - 10; // 10px margin from right edge
-      }
+    let left = rect.left + window.scrollX;
+    const popupWidth = popup.offsetWidth || 280;
+    const viewportWidth = document.documentElement.clientWidth;
 
-      popup.style.left = `${Math.max(left, 10)}px`; // also prevent it going off left edge
+    if (left + popupWidth > viewportWidth) {
+      left = viewportWidth - popupWidth;
     }
+
+    popup.style.left = `${left}px`;
   }
 }
 
@@ -244,6 +247,7 @@ function loadBaseJson() {
     }
 
     initializeSelections();
+    initPickers();
     setupEventListeners();
     setFontSize();
     if (currentRender === "search") {
@@ -287,6 +291,7 @@ function loadBaseJson() {
     baseData = baseJson;
     lookupdb = lookupsJson; // or whatever variable you're using for the lookup table
     initializeSelections();
+    initPickers();
     setupEventListeners();
     setFontSize();
     if (currentRender === "search") {
@@ -529,11 +534,12 @@ function setupEventListeners() {
   });
 
   window.addEventListener('click', function (e) {
-    const isMenuPopup = e.target.closest('.menu-popup');
+    console.log(e.target, e.target.closest('.ref-col'))
+    const isMenuPopup = e.target.closest('.menu-popup, .ref-popup');
     const isMenuToggleButton = e.target.matches('button[data-toggle-popup]');
 
     if (!isMenuPopup && !isMenuToggleButton) {
-      document.querySelectorAll('.menu-popup').forEach(p => {
+      document.querySelectorAll('.menu-popup, .ref-popup').forEach(p => {
         p.style.display = 'none';
       });
     }
@@ -555,6 +561,230 @@ function setupEventListeners() {
 
   document.getElementById("historyBackBtn").addEventListener("click", historyBack);
   document.getElementById("historyForwardBtn").addEventListener("click", historyForward);
+}
+
+// Fancy Reference Selector Box code.
+let useAbbrev = true; // controlled externally
+function getBookLabel(i) {
+  return useAbbrev ? bookAbb[i] : bookNames[i];
+}
+
+function selectBook(prefix, i) {
+  const bookSel = document.getElementById("book" + prefix);
+  if (!bookSel) return;
+
+  bookSel.value = i;
+  elements["book" + prefix].dispatchEvent(new Event("change", { bubbles: true }));
+  buildChapters(prefix, i);
+  selectChapter(prefix, 0);
+}
+
+function selectChapter(prefix, i) {
+  const chapSel = document.getElementById("chapter" + prefix);
+  if (!chapSel) return;
+
+  chapSel.value = i;
+  const book = document.getElementById("book" + prefix)?.value;
+  elements["chapter" + prefix].dispatchEvent(new Event("change", { bubbles: true }));
+  buildVerses(prefix, book, i);
+  selectVerse(prefix, 0, false);
+}
+
+function selectVerse(prefix, i, close = true) {
+  const verseSel = document.getElementById("verse" + prefix);
+  if (!verseSel) return;
+
+  verseSel.value = i;
+  elements["verse" + prefix].dispatchEvent(new Event("change", { bubbles: true }));
+  if (close) {
+    togglePopup("ref" + prefix + "Popup");
+  }
+}
+
+function buildBookList(prefix) {
+  const bookCol = document.getElementById(prefix + "Books");
+  bookCol.innerHTML = "";
+  bookNames.forEach((_, i) => {
+    if (!baseData[i]?.length) return;
+    const d = document.createElement("div");
+    d.textContent = getBookLabel(i);
+    d.onclick = () => selectBook(prefix, i);
+    bookCol.appendChild(d);
+  });
+}
+
+function buildChapters(prefix, bookIndex) {
+  const col = document.getElementById(prefix + "Chapters");
+  if (!col) return;
+
+  col.innerHTML = "";
+  const chapters = baseData[bookIndex] || [];
+  chapters.forEach((_, i) => {
+    const d = document.createElement("div");
+    d.textContent = i + 1;
+    d.onclick = (event) => {
+      event.stopPropagation(); // Prevent the click from reaching the window handler
+      selectChapter(prefix, i);
+    };
+    col.appendChild(d);
+  });
+}
+
+function buildVerses(prefix, bookIndex, chapIndex) {
+  const col = document.getElementById(prefix + "Verses");
+  if (!col) return;
+
+  col.innerHTML = "";
+  const verses = baseData[bookIndex]?.[chapIndex] || [];
+  verses.forEach((_, i) => {
+    const d = document.createElement("div");
+    d.textContent = i + 1;
+    d.onclick = (event) => {
+      event.stopPropagation();
+      selectVerse(prefix, i);
+    };
+    col.appendChild(d);
+  });
+}
+
+function updateDisplay(init = false) {
+  ["Start", "End"].forEach(prefix => {
+    const b = document.getElementById("book" + prefix).value;
+    const c = document.getElementById("chapter" + prefix).value;
+    const v = document.getElementById("verse" + prefix).value;
+    document.querySelector(`#${prefix.toLowerCase()}Picker .ref-display`)
+      .textContent = `${getBookLabel(b)} ${+c + 1}:${+v + 1}`;
+    buildChapters(prefix, b);
+    buildVerses(prefix, b, c);
+  });
+  if (!init) {
+    render();
+  }
+}
+
+function initPickers() {
+  ["Start", "End"].forEach(prefix => {
+    buildBookList(prefix);
+  });
+
+  updateDisplay(true);
+
+  ["refStartPopup", "refEndPopup"].forEach(id => {
+    const popup = document.getElementById(id);
+    if (!popup) return;
+
+    // Temporarily show offscreen for layout
+    popup.style.visibility = "hidden";
+    popup.style.display = "grid";
+    popup.style.position = "absolute";
+    popup.style.left = "-9999px";
+    popup.style.top = "-9999px";
+
+    popup.getBoundingClientRect();
+
+    // Measure text widths
+    const temp = document.createElement("span");
+    temp.style.position = "absolute";
+    temp.style.visibility = "hidden";
+    temp.style.font = getComputedStyle(popup).font;
+    document.body.appendChild(temp);
+
+    let maxBookWidth = 0;
+    bookAbb.forEach(b => {
+      temp.textContent = b;
+      maxBookWidth = Math.max(maxBookWidth, temp.offsetWidth + 16);
+    });
+
+    temp.textContent = "175";
+    let chapWidth = temp.offsetWidth + 16;
+
+    // Update CSS variables dynamically
+    document.documentElement.style.setProperty('--book-width', `${maxBookWidth-16}px`);
+    document.documentElement.style.setProperty('--number-width', `${chapWidth-16}px`);
+
+
+    document.body.removeChild(temp);
+
+    // Initial preferred items per row
+    let booksPerRow = 3;
+    let chapPerRow = 4;
+
+    // Calculate initial column widths
+    let bookColWidth = maxBookWidth * booksPerRow;
+    let chapColWidth = chapWidth * chapPerRow;
+
+    // Gap between columns
+    const colGap = 0; // px between columns
+    let totalWidth = bookColWidth + chapColWidth * 2 + colGap * 2;
+
+    const viewportWidth = window.innerWidth;
+
+    // Reduce items per row if total width exceeds viewport
+    if (totalWidth > viewportWidth) chapPerRow = 3, chapColWidth = chapWidth * chapPerRow, totalWidth = bookColWidth + chapColWidth * 2 + colGap * 2;
+    if (totalWidth > viewportWidth) booksPerRow = 2, bookColWidth = maxBookWidth * booksPerRow, totalWidth = bookColWidth + chapColWidth * 2 + colGap * 2;
+    if (totalWidth > viewportWidth) chapPerRow = 2, chapColWidth = chapWidth * chapPerRow, totalWidth = bookColWidth + chapColWidth * 2 + colGap * 2;
+    if (totalWidth > viewportWidth) booksPerRow = 1, bookColWidth = maxBookWidth * booksPerRow, totalWidth = bookColWidth + chapColWidth * 2 + colGap * 2;
+    if (totalWidth > viewportWidth) chapPerRow = 1, chapColWidth = chapWidth * chapPerRow, totalWidth = bookColWidth + chapColWidth * 2 + colGap * 2;
+
+    // Apply column widths
+    ["Start", "End"].forEach(prefix => {
+      const bookCol = document.getElementById(prefix + "Books");
+      const chapCol = document.getElementById(prefix + "Chapters");
+      const verseCol = document.getElementById(prefix + "Verses");
+
+      if (bookCol) bookCol.style.width = bookColWidth + "px";
+      if (chapCol) chapCol.style.width = chapColWidth + "px";
+      if (verseCol) verseCol.style.width = chapColWidth + "px";
+    });
+
+    // Set popup width to fit all columns (or max screen width)
+    popup.style.width = Math.min(totalWidth, viewportWidth) + "px";
+
+    const desiredHeight = Math.min(270, window.innerHeight - 100);
+    popup.style.height = desiredHeight + "px";
+
+    // Hide again
+    popup.style.display = "none";
+    popup.style.visibility = "";
+    popup.style.left = "";
+    popup.style.top = "";
+  });
+}
+
+window.addEventListener('resize', () => {
+  initPickers();
+});
+
+function applyRefColumnWidths(prefixes = ["Start", "End"]) {
+  // Measure text widths
+  const temp = document.createElement("span");
+  temp.style.position = "absolute";
+  temp.style.visibility = "hidden";
+  temp.style.font = getComputedStyle(document.body).font;
+  document.body.appendChild(temp);
+
+  // Books
+  let maxBookWidth = 0;
+  bookAbb.forEach(b => {
+    temp.textContent = b;
+    maxBookWidth = Math.max(maxBookWidth, temp.offsetWidth + 12); // add padding
+  });
+
+  // Chapters / Verses (up to 3 digits)
+  temp.textContent = "175";
+  let chapWidth = temp.offsetWidth + 12;
+
+  document.body.removeChild(temp);
+
+  prefixes.forEach(prefix => {
+    const bookCol = document.getElementById(prefix + "Books");
+    const chapCol = document.getElementById(prefix + "Chapters");
+    const verseCol = document.getElementById(prefix + "Verses");
+
+    if (bookCol) bookCol.style.width = maxBookWidth + "px";
+    if (chapCol) chapCol.style.width = chapWidth + "px";
+    if (verseCol) verseCol.style.width = chapWidth + "px";
+  });
 }
 
 // Dropdown setup
@@ -921,6 +1151,8 @@ function adjustSelections() {
       elements.verseStart.value = vS;
     }
   }
+
+  updateDisplay();
 }
 
   const fontSizeScale = [10, 11, 12, 14, 16, 18, 20, 22, 24, 28, 32, 36, 40];
@@ -3399,13 +3631,27 @@ function setCollapsedHeadGroups(ids = []) {
 document.addEventListener("keydown", function (e) {
   let delta = null;
 
+  // Special case for search view
+  if (currentRender === "search") {
+    if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+      prevPage();
+      e.preventDefault();
+      return;
+    }
+    if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+      nextPage();
+      e.preventDefault();
+      return;
+    }
+  }
+
   // Horizontal arrows
   if (e.key === "ArrowRight") delta = 1;
   if (e.key === "ArrowLeft")  delta = -1;
 
   // Vertical arrows
-  if (e.key === "ArrowUp") delta = 4;
-  if (e.key === "ArrowDown") delta = -4;
+  if (e.key === "ArrowUp") delta = -4;
+  if (e.key === "ArrowDown") delta = 4;
 
   // Modifiers
   if (delta !== null) {
