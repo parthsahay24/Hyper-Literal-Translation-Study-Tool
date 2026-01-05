@@ -451,7 +451,7 @@ function setupEventListeners() {
   ];
 
   rangeSelectors.forEach(({ book, chapter, verse, type }) => {
-    elements[book].addEventListener("change", () => {
+    elements[book].addEventListener("change", (e) => {
       lastChanged = type;
       const b = +elements[book].value;
       populateChapters(b, elements[chapter]);
@@ -459,23 +459,23 @@ function setupEventListeners() {
       populateVerses(b, 0, elements[verse]);
       elements[verse].value = 0;
       adjustSelections();
-      render();
+      // Removed render() call. Handled by new fancy ref picker.
     });
 
-    elements[chapter].addEventListener("change", () => {
+    elements[chapter].addEventListener("change", (e) => {
       lastChanged = type;
       const b = +elements[book].value;
       const c = +elements[chapter].value;
       populateVerses(b, c, elements[verse]);
       elements[verse].value = 0;
       adjustSelections();
-      render();
+      // Removed render() call. Handled by new fancy ref picker.
     });
 
-    elements[verse].addEventListener("change", () => {
+    elements[verse].addEventListener("change", (e) => {
       lastChanged = type;
       adjustSelections();
-      render();
+      // Removed render() call. Handled by new fancy ref picker.
     });
   });
 
@@ -483,18 +483,18 @@ function setupEventListeners() {
   elements.gapInput.addEventListener("input", () => {
     let verseRange = parseInt(elements.gapInput.value, 10);
     if (isNaN(verseRange) || verseRange < 1) elements.gapInput.value = 1;
-    if (currentRender === "search") searchVerses();
+    if (currentRender === "search") searchVerses(); 
     else if (elements.enforceGap.checked) {
       lastChanged = "start";
       adjustSelections();
       render();
-    } else render();
+    } 
   });
 
   elements.enforceGap.addEventListener("change", () => {
+    elements.gapInput.disabled = !elements.enforceGap.checked;
     lastChanged = "start";
     adjustSelections();
-    render();
   });
 
   // For checkboxes that trigger onOptionsChange
@@ -534,7 +534,6 @@ function setupEventListeners() {
   });
 
   window.addEventListener('click', function (e) {
-    console.log(e.target, e.target.closest('.ref-col'))
     const isMenuPopup = e.target.closest('.menu-popup, .ref-popup');
     const isMenuToggleButton = e.target.matches('button[data-toggle-popup]');
 
@@ -564,6 +563,20 @@ function setupEventListeners() {
 }
 
 // Fancy Reference Selector Box code.
+
+function makeHeaderSpacerFromColumn(col, text) {
+  const spacer = document.createElement("div");
+  spacer.className = "ref-header-spacer";
+  spacer.textContent = text;
+  spacer.style.pointerEvents = "none";
+  spacer.style.fontWeight = "bold";
+
+  // Copy the actual rendered width of the column
+  spacer.style.width = Math.floor(chapColWidth) + "px";
+  
+  return spacer;
+}
+
 let useAbbrev = true; // controlled externally
 function getBookLabel(i) {
   return useAbbrev ? bookAbb[i] : bookNames[i];
@@ -599,6 +612,7 @@ function selectVerse(prefix, i, close = true) {
   if (close) {
     togglePopup("ref" + prefix + "Popup");
   }
+  render();
 }
 
 function buildBookList(prefix) {
@@ -618,6 +632,10 @@ function buildChapters(prefix, bookIndex) {
   if (!col) return;
 
   col.innerHTML = "";
+
+  const bookLabel = getBookLabel(bookIndex);
+  col.appendChild(makeHeaderSpacerFromColumn(col, bookLabel));
+
   const chapters = baseData[bookIndex] || [];
   chapters.forEach((_, i) => {
     const d = document.createElement("div");
@@ -635,6 +653,10 @@ function buildVerses(prefix, bookIndex, chapIndex) {
   if (!col) return;
 
   col.innerHTML = "";
+
+  const headerText = `${getBookLabel(bookIndex)} ${parseInt(chapIndex) + 1}`;
+  col.appendChild(makeHeaderSpacerFromColumn(col, headerText));
+
   const verses = baseData[bookIndex]?.[chapIndex] || [];
   verses.forEach((_, i) => {
     const d = document.createElement("div");
@@ -647,7 +669,7 @@ function buildVerses(prefix, bookIndex, chapIndex) {
   });
 }
 
-function updateDisplay(init = false) {
+function updateDisplay() {
   ["Start", "End"].forEach(prefix => {
     const b = document.getElementById("book" + prefix).value;
     const c = document.getElementById("chapter" + prefix).value;
@@ -657,17 +679,14 @@ function updateDisplay(init = false) {
     buildChapters(prefix, b);
     buildVerses(prefix, b, c);
   });
-  if (!init) {
-    render();
-  }
 }
+
+let chapColWidth = 0;
 
 function initPickers() {
   ["Start", "End"].forEach(prefix => {
     buildBookList(prefix);
   });
-
-  updateDisplay(true);
 
   ["refStartPopup", "refEndPopup"].forEach(id => {
     const popup = document.getElementById(id);
@@ -711,7 +730,7 @@ function initPickers() {
 
     // Calculate initial column widths
     let bookColWidth = maxBookWidth * booksPerRow;
-    let chapColWidth = chapWidth * chapPerRow;
+    chapColWidth = chapWidth * chapPerRow;
 
     // Gap between columns
     const colGap = 0; // px between columns
@@ -736,11 +755,11 @@ function initPickers() {
       if (chapCol) chapCol.style.width = chapColWidth + "px";
       if (verseCol) verseCol.style.width = chapColWidth + "px";
     });
-
+    
     // Set popup width to fit all columns (or max screen width)
     popup.style.width = Math.min(totalWidth, viewportWidth) + "px";
 
-    const desiredHeight = Math.min(270, window.innerHeight - 100);
+    const desiredHeight = Math.min(271, window.innerHeight - 100);
     popup.style.height = desiredHeight + "px";
 
     // Hide again
@@ -749,6 +768,8 @@ function initPickers() {
     popup.style.left = "";
     popup.style.top = "";
   });
+
+  updateDisplay();
 }
 
 window.addEventListener('resize', () => {
@@ -975,6 +996,8 @@ function encodeRangeToUrl() {
     .then(() => showToast("URL copied to clipboard!"))
     .catch(err => alert("Failed to copy URL: " + err));
   window.history.replaceState(null, "", newUrl);
+
+  togglePopup("savePopup");
 }
 
 // URL Search Save
@@ -1015,6 +1038,8 @@ function saveUrlSearch() {
     .then(() => showToast("URL copied to clipboard!"))
     .catch(err => alert("Failed to copy URL: " + err));
   window.history.replaceState(null, "", newUrl);
+
+  togglePopup("savePopup");
 }
 
 function resetUrl() {
@@ -1025,6 +1050,8 @@ function resetUrl() {
     .then(() => showToast("URL copied to clipboard!"))
     .catch(err => alert("Failed to copy URL: " + err));
   window.history.replaceState(null, "", newUrl);
+
+  togglePopup("savePopup");
 }
 
 function applyUrlSearch() {
@@ -1670,7 +1697,6 @@ function createClickableSpan(className, text, wordEl) {
   span.addEventListener("click", (e) => {
     const isPopupActive = wordEl === currentPopup;
     const timeSincePopup = Date.now() - popupActivatedAt;
-    //console.log(currentPopup);
     if (isPopupActive && timeSincePopup > 200) {
       const term = span.dataset.search || span.textContent.trim();
       elements.searchInput.value = term;
@@ -2200,7 +2226,6 @@ function showPopup(e) {
 function showPopupDelay(event) {
   currentPopup = event.target;
   popupActivatedAt = Date.now();  // Track when it was shown
-  //console.log(currentPopup);
   // Clear any previous timer (if user quickly moves between elements)
   clearTimeout(popupTimeout);
   clearTimeout(popupDelayTimer);
@@ -2683,6 +2708,7 @@ function refSearch(searchTerm) {
   const ref = tryParseReference(searchTerm);
   if (ref) {
     setReferenceRange(ref);
+    updateDisplay();
     render();
     return;
   }
@@ -2717,6 +2743,7 @@ function searchVerses() {
   const ref = tryParseReference(searchTerm);
   if (ref) {
     setReferenceRange(ref);
+    updateDisplay();
     render();
     return;
   }
@@ -2728,7 +2755,6 @@ function searchVerses() {
       container.innerHTML = `<p>No verses found containing "${searchTerm}".</p>`;
       return;
     }
-    
     render(matches);
     return;
   }
@@ -2749,7 +2775,6 @@ function searchVerses() {
     container.innerHTML = `<p>No verses found containing "${searchTerm}".</p>`;
     return;
   }
-
   render(matches);
 }
 
@@ -3108,7 +3133,7 @@ function multiWordSearch(searchStr, lookupInd) {
 
   const shortestLookup = sortedLookupTerms[0];
 
-  console.log(lookupTerms, lookupStrength, shortestLookup);
+  //console.log(lookupTerms, lookupStrength, shortestLookup);
 
   let results = []; 
   const claimedVerses = new Set();
@@ -3277,7 +3302,7 @@ function matchesLookup(term, value) {
   return !result;
 }
 
-function updateBCV(delta) {
+function updateBCV(delta, renderFlag = true) {
   let bSel = elements.bookStart, cSel = elements.chapterStart, vSel = elements.verseStart;
 
   let b = +bSel.value;
@@ -3351,7 +3376,7 @@ function updateBCV(delta) {
     const count = Number(elements.gapInput.value); // how many times
 
     for (let i = 0; i < count; i++) {
-      updateBCV(step);
+      updateBCV(step, false);
     }
   }
 
@@ -3370,16 +3395,19 @@ function updateBCV(delta) {
 
   lastChanged = "start";
   adjustSelections();
-  render();
+  if (renderFlag) render();
 }
 
 function copyText(mode) {
   const output = document.getElementById("output");
+  const cleanText = mode === "grk" ? "Greek" : "English";
   if (!output) return;
+
+  togglePopup('copyPopup')
 
   // Bail out if grid view is active
   if (output.querySelector(".word-list-grid")) {
-    console.log("Grid display active, skipping copy.");
+    showToast("Search list display active, skipping copy.");
     return;
   }
 
@@ -3400,8 +3428,8 @@ function copyText(mode) {
 
   if (result) {
     navigator.clipboard.writeText(result)
-      .then(() => console.log(`${mode.toUpperCase()} text copied!`))
-      .catch(err => console.error("Copy failed:", err));
+      .then(() => showToast(`${cleanText} text copied!`))
+      .catch(err => showToast("Copy failed: ", err));
   }
 }
 
@@ -3704,6 +3732,13 @@ fontToggle.addEventListener('change', e => {
   saveSettings();
   updateFont(e.target.checked);
 });
+
+function autoGapInputWidth(el) {
+  const len = el.value.length || 1;
+  el.style.width = (len + 2) + 'ch';
+}
+
+autoGapInputWidth(elements.gapInput);
 
 // Load initial data from server.
 loadBaseJson();

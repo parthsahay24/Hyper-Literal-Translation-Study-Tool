@@ -604,13 +604,16 @@ select {
   flex-flow: row wrap;
   align-content: flex-start;    /* top-align all rows */
   justify-content: flex-start;  /* left-align items */
-  height: 270;
   overflow-y: auto;
   overflow-x: hidden;
   border-right: 1px solid #ddd;
 
   scrollbar-width: none;       /* Firefox */
   -ms-overflow-style: none;    /* IE / old Edge */
+}
+
+.ref-col {
+  height: 271px;
 }
 
 /* Chrome / Safari / Edge scrollbar hide */
@@ -662,4 +665,12 @@ select {
   background: var(--hover-highlight);
 }
 
+.ref-header-spacer {
+  background: var(--hover-highlight);
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+  white-space: nowrap;
+  padding: 4px 6px;
+  box-sizing: border-box;
+}
 
