@@ -500,7 +500,7 @@ function setupEventListeners() {
   // For checkboxes that trigger onOptionsChange
   [
     "showGreek", "showEnglish", "showPcode", "showVerses",
-    "showStrongs", "showRoots", "newlineAfterVerse", "reverseInterlinear", "highlightSearch", "searchSize", "customFormat"
+    "showStrongs", "showRoots", "newlineAfterVerse", "reverseInterlinear", "highlightSearch", "searchSize", "customFormat", "altSearch", "uncialGreek"
   ].forEach(id => {
     elements[id].addEventListener("change", onOptionsChange);
   });
@@ -1460,11 +1460,11 @@ function render(customVerses = null) {
         let grk = "", pcode = "", strongs = "", roots = "", cEng = "", rEng = "", count = 0;
 
         if ((typeof ident === "string" && /^[A-Za-z]+$/.test(ident)) || (altSearch)) {
-            if (typeof ident === "string" && /^[A-Za-z]+$/.test(ident)) {
-              grk = ident; // ident is actually the greek word from LXX auto-fill.
-            } else {
-              grk = lookupdb[ident][0];
-            }
+          if (typeof ident === "string" && /^[A-Za-z]+$/.test(ident)) {
+            grk = ident; // ident is actually the greek word from LXX auto-fill.
+          } else {
+            grk = lookupdb[ident][0];
+          }
           // ident is blank → collect ALL entries for this grk
           const matches = Object.entries(lookupdb)
           .filter(([, val]) => val[0] === grk) // compare against Greek in val[0]
@@ -1927,6 +1927,9 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
     }
 
     if (showGreek && grk) {
+      if (elements.uncialGreek.checked) {
+        grk = toGreek(grk).toUpperCase();
+      }
       wordEl.appendChild(createClickableSpan("grk", toGreek(grk), wordEl));
       hasContent = true;
     } else if (showGreek) {
@@ -3657,6 +3660,11 @@ function setCollapsedHeadGroups(ids = []) {
 }
 
 document.addEventListener("keydown", function (e) {
+  const active = document.activeElement;
+
+  // Skip if the user is typing in the search input
+  if (active && active.id === "searchInput") return;
+
   let delta = null;
 
   // Special case for search view

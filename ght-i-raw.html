@@ -99,6 +99,7 @@
       <label title="When checked, English text will use Nathan's formatting style."><input type="checkbox" id="customFormat" data-id> Format English</label><br>
       <label title="Search for alternatives. WARNING: Data will load slower when this is checked."><input type="checkbox" id="altSearch" data-id> Show Alternates (in pop-up)</label><br>
       <label title="Please don't use this for long."><input type="checkbox" id="translitGreek"> Transliterate (in pop-up)</label><br>
+      <label title="ALLCAPSMODE"><input type="checkbox" id="uncialGreek" data-id> Majuscule Mode</label><br>
       <label title="Select how many search results or verses to show at a time." for="searchSize">Max Results:</label>
       <input id="searchSize" type="number" value="100" min="1" step="1" style="width: 45px;" data-id><br>
       <span title="Font size adjustment." class="head-group3">
@@ -123,9 +124,9 @@
         <input
           type="range"
           id="paddingSlider"
-          min="0.1"
-          max="0.4"
-          step="0.01"
+          min="0.0"
+          max="0.5"
+          step="0.05"
           value="0.15"
           data-id
         >
@@ -234,18 +235,22 @@
       How to Use This Tool 
       <a href="http://ghukek.com/ght.html" style="font-size: 0.6em; margin-left: 0.5em;">(More info and contact)</a>
     </h2>
-    <h3>Newest feature:</h3>
+    <h3>Recent Changes:</h3>
     <p>25 Dec: Added collapsing for the header, the reference group and the search group in consideration of mobile browser screen real estate.</p>
     <p>25 Dec: Added page navigation buttons that navigated according to the current verse range.</p>
     <p>27 Dec: Added navigation using arrow keys.</p>
     <p>1 Jan: Added typeface selection toggle, swapped to sliders for font size, added padding slider, added word border toggle.</p>
     <p>3-4 Jan: Added fancy reference selection box.</p>
-    <h3>Selecting passages by reference:</h3>
-    <p>Select your start and end book, chapter, and verse from "Start Ref" and "End Ref". </p>
-    <p>You may manually adjust how many verses to show at a time to by changing 'Verse Range'. A 'Verse Range' of '1' will show one verse. </p>
-    <p>You may select as many verses as you want by unchecking 'Fixed'. </p>
+    <p>5 Jan: Minor UI clean-up and performance bug fixes. Added majuscule mode.</p>
+    <h3>Reference Selection:</h3>
+    <p>Select your start or end book, chapter, and verse from "Start Ref" and "End Ref". </p>
+    <p>You may manually adjust how many verses to show at a time by changing the number in between "Show" and "verses" when "Fixed" is enabled.</p>
+    <p>When "Fixed" is unchecked, you select the start and end references manually.</p>
     <p>The 'Load' button will load the current reference selection. This is only necessary when the user has searched and wants to go back to the current selection.</p>
-    <p>The 'Interlinear Options' are a list of parameters that can be shown on screen. Any parameters left unchecked will be shown in a popup window for each word. The options are:</p>
+    <p>You can save the current reference selection to be persistant using the "Save Reference" button. This overrides the random generation on page load.</p>
+    <h3>Settings</h3>
+    <p>The display settings allow you to customize your user experience. The search settings will be discussed in the "Searching" section.</p>
+    <p>The options within the 'Show on Screen' box are a list of word properties that can be shown on screen. Any properties left unchecked will be shown in a popup window for each word. The options are:</p>
     <ul>
       <li>Greek: shows the Greek text.</li>
       <li>English: shows the English translation.</li>
@@ -253,19 +258,34 @@
       <li>Strong's: shows Strong’s Concordance numbers.</li>
       <li>Roots: shows my personal categorization of related words by showing the etymological breakdown of primitive roots from which they are constructed. Greek has many compound words. This is meant to be a more comprehesive set of connections than the Strong's concordance numbers. However, please be careful since some of the connections are a bit more spurious than others and you need to watch out for the etymological fallacy.</li>
     </ul>
-    <p>The 'Display Options' allow you to adjust how to show the selected passages. You can also save or reset your settings here.</p>
-    <p>The 'Max Results' selection sets how many verses or entries to display at a time when making a large search. This value also limits the number of verses to display when selecting by reference.</p>
+    <p>Other display settings:</p>
+    <ul>
+      <li>Show verse numbers: for an 'authentic' reading experience, turn these off, turn on Maguscule Mode, turn off Reverse Interlinear, turn off the English sublinear text, and set the word padding slider to zero: Now you have an ancient manuscript simulator! And then click "Reset Display Settings" because no one reads like that anymore...</li>
+      <li>New line after each verse: for those who prefer this format.</li>
+      <li>Reverse Interlinear: When checked, it uses the GHT English-ized word order. When unchecked, it displays my best reconstruction of the original Greek word order. (Many of the most common manuscript variations are in untranslatable word order and I did not put a significant amount of effort into selecting the correct one during the back-translation process.)</li>
+      <li>Highlight Search Results: When checked, any words that match existing search terms in the search box will be highlighted. Note that this does not distinguish between a valid result and an invalid result for multi-word constrained searches.</li>
+      <li>Format English: When checked, the English text will be formatted with my personal preference for pleasant display, reducing the clutter from brackets by means of smaller, off-color text and using less intrustive half-brackets instead of curly braces.</li>
+    </ul>
+    <p>There are two word properties that are not available to be shown on screen. They are marked with "(in pop-up)". By default, they do not appear in the pop-up, but are available if desired:</p>
+    <ul>
+      <li>Show Alternates: Shows a list of different ways the GHT translates this exact inflection. Warning: there will be some noticeable performance impact by selecting this option.</li>
+      <li>Transliteration: Shows a very rough transliteration of the Greek word. Note, this is a basic crutch for those who are new to the Greek alphabet and is not meant to be a rigorous transliteration. There are pronunciation nuances such as rough breathing which are not accounted for. Consider that the most basic step in learning Greek is to learn the alpha-bet[a]. It is twenty-four letters and many of them are similar to their Latin counterparts.</li>
+    </ul>
+    <p>Max Results: Sets how many verses or entries to display at a time when making a large search. This value also limits the number of verses to display when selecting by reference.</p>
+    <p>Font size, word padding, word borders, and type-face selection boxes are all straightforward; play with them to find your preferred viewing experience.</p>
+    <p>Reset Display Settings: Puts you back in the default, Ghukek's preferred viewing experience.</p>
     <h3>Searching:</h3>
     <p>To search, type text into the search bar and click 'Search'. You may also click on any clickable string in the body of the text or in the popups to automatically search that string. Use the 'Greek Keyboard' if you do not have a Greek keyboard set up in your operating system and want to type in Greek. When 'Greek Keyboard' is checked, the search bar will automatically convert your input to Greek characters to allow you to search for Greek words. Click the '?' button to see an image of a Greek keyboard if you don't know how to type in Greek. You may search for multiple words at a time.</p>
     <p>The 'Search Options' allow you to customize your search parameters. The explanation for these are as follows:</p>
     <ul>
-      <li>Exact Match: When checked, the search will only show words that are exactly as what you typed in (case insensitive). Otherwise, it will return all partial matches.</li>
+      <li>Exact Match: When checked, the search will only show words that are exactly as what you entered (case insensitive). Otherwise, it will return all partial matches. (Warning, you may need 'Normalize English' to be checked to get the results you expect. See below.)</li>
       <li>Center Ref: When checked, this will center the verse containing the search terms in its context. Otherwise, the verse containing the search terms will be shown as the start of its context. For example, with a context of 5 verses, "the jesus tears." will show John 11:35-39 when unchecked or John 11:33-37 when checked.</li>
-      <li>Show Context: When checked, this will return search results in the verse they appear in plus as much surrounding context as the user selects using 'Verse Range'. Otherwise it will just return a list of search results and the verse reference they appear in.</li>
-      <li>Normalize English: When checked, this will ignore punctuation and pull text out of nested brackets. For example, a search for "of{Jesus}" will not show cases of "Jesus}" (from "of{the Jesus}")unless this is checked. </li>
-      <li>Unique Words: When checked, this will only show uniqe word pairs rather than every result. This is useful if a user is trying to look at all the different ways a specific word may be translated or inflected.</li>
+      <li>Show Context: When checked, this will return search results in the verse they appear in plus as much surrounding context as the user selects using 'Show __ verses'. Otherwise it will just return a list of search results and the verse reference they appear in. (Note that any multi-word searches will always show in context.)</li>
+      <li>Unique Words: When checked, this will only show uniqe word pairs rather than every result. This is useful if a user is trying to look at all the different ways a specific word may be translated or inflected. (Note that 'Show Context' takes priority over 'Unique Words'.)</li>
+      <li>Normalize English: When checked, this will ignore punctuation and pull text out of nested brackets. For example, a search for "of{Jesus}" will not show cases of "Jesus}" (from "of{the Jesus}") unless this is checked. </li>
       <li>Ordered: When searching for multiple words, this forces the words to appear in the order they were searched. So, "Jesus Anointed" will not return verses that have "Anointed Jesus" (e.g. Acts 5:42). Note that this setting will work for whichever word order you have currently checked. Thus, "ου μη" (Exact Match, Ordered, Adjacent) will return a lot of results in interlinear order, but zero in reverse interlinear.</li>
       <li>Adjacent: When searching for multiple words, this forces the words to be adjacent to each other. So, "Jesus Anointed" will not return "Jesus, the being-said 'Anointed'" (e.g. Matthew 1:18). </li>
+      <li>Expand Morph: Due to my innovation to use an expanded set of morphology letters to account for inflections with multiple grammatical options, this option allows the user to capture all letter options for a specific search. For example, searching for "A" for "accusative" should return anything marked with "B" for "accusative/nominative". When checked, it will search this way. When unchecked, it will only search for exact letter matches.</li>
     </ul>
     <p>For searching, the following information will be useful:</p>
     <ul>
@@ -281,16 +301,17 @@
     </ul>
     <p>The information listed above is a bit technical. I encourage you to use my "Build Query" tool to assist you. Experiment with it. This search function is extremely powerful.</p>
     <h3>Sharing:</h3>
-    <p>The tool can save the current reference selection to the URL so that the user can share a passage via link. Or, the user can share a particular search result. See the 'Save as URL:' buttons.</p>
+    <p>The tool can save the current reference selection to the URL so that the user can share a passage via link. Or, the user can share a particular search result. See the 'URL Save' buttons.</p>
+    <p>Alternatively, the user may copy the text on screen. Use the 'Copy Text' buttons to copy all Greek or English text to your clipboard when you are verse-display mode.</p>
     <h3>Navigation:</h3>
-    <p>The back and forward buttons at the top right of the page bring you to your last render state. It stores up to 100 renders in history.</p>
+    <p>The back and forward buttons at the top left of the page bring you to your last render state. It stores up to 100 renders in history.</p>
     <p>The navigation buttons at the bottom of the page are relatively self-explanatory. They bring you forward or back by one chapter, page, or verse. A page is defined as the number of verses currently rendered.</p>
     <p>You can also use navigation arrow keys to navigate book, chapter, page, and verse. Use the left /right arrow keys for the verse, and the up/down arrow keys for the page. Shift + left/right moves the chapter, and ctrl + left/right moves the book.</p>
     <p>When searching, an additional page navigation button may appear, showing that you have more search results than the current maximum per-page. You can use the buttons or the left/right or the up/down arrow keys.</p>
-    <h3>Copy text:</h3>
-    <p>For now, these only work for text showing on screen. They will copy all Greek or English text to your clipboard when you are verse-display mode.</p>
     <h3>Contributors:</h3>
     <p>Ben Holt: Suggestion for arrow key support. Discussion prompting typeface selection, word padding slider, and word border selection. Suggestion for auto-save display settings.</p>
+    <h3><img src="public_domain_icon_200x200.png" alt="No copyright" height="20" width="20"> Public Domain</h3>
+    <p>The GHT Study Tool consisting of the entirety of this HTML file is granted to the public domain.</p>
   </div>
   <button class="close-btn" onclick="toggleHelpPopup('helpPopup','helpButton')">Close</button>
 </div>
