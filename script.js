@@ -3765,7 +3765,24 @@ function buildPanels(count) {
       div.innerHTML = oldOutput.innerHTML;
     }
 
-    div.addEventListener("mousedown", () => activate(div));
+    div.addEventListener("mousedown", (event) => {
+      const target = event.target;
+
+      // Check if the clicked element is a <span class="verse-label">
+      if (target.matches("span.verse-label")) {
+        console.log("Clicked a verse label — do NOT activate the panel");
+        return; // skip activating the panel
+      }
+
+      // Check if the clicked element is a <span> that is a child of <span class="word">
+      if (target.closest("span.word")) {
+        console.log("Clicked inside a word span — do NOT activate the panel");
+        return; // skip activating the panel
+      }
+
+      // Otherwise, activate the panel
+      activate(div);
+    });
     outputContainer.appendChild(div);
   }
   updatePanelHeight();
@@ -3814,7 +3831,7 @@ function updatePanelHeight() {
     if (bottomEl && topEl) {
       const bottomOfBottomEl = bottomEl.getBoundingClientRect().bottom;
       const topOfTopEl = topEl.getBoundingClientRect().top;
-      console.log(bottomOfBottomEl, topOfTopEl)
+      
       height = Math.max(0, topOfTopEl - bottomOfBottomEl - 4);
     } else {
       // Fallback if either element is missing
