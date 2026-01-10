@@ -305,6 +305,8 @@ function loadBaseJson() {
     initPickers();
     setupEventListeners();
     setFontSize();
+    storePanelState(0);
+    storePanelState(1);
     setMode();
     if (currentRender === "search") {
       searchVerses();
@@ -1422,26 +1424,7 @@ function render(customVerses = null) {
   saveState()
   const container = document.getElementById("output");
   container.innerHTML = "";
-
-  // Get Reference Start, Verse Range, and Search String
-
-  const bookStart = parseInt(elements.bookStart.value);
-  const chapterStart = parseInt(elements.chapterStart.value);
-  const verseStart = parseInt(elements.verseStart.value);
-  const bookEnd = parseInt(elements.bookEnd.value);
-  const chapterEnd = parseInt(elements.chapterEnd.value);
-  const verseEnd = parseInt(elements.verseEnd.value);
-  const currentSearch = elements.searchInput.value.trim();
-  const gapInput = parseInt(elements.gapInput.value, 10) || 1;
-  // Store on container (not visible)
-  container.dataset.bookStart = bookStart;
-  container.dataset.chapterStart = chapterStart;
-  container.dataset.verseStart = verseStart;
-  container.dataset.bookEnd = bookEnd;
-  container.dataset.chapterEnd = chapterEnd;
-  container.dataset.verseEnd = verseEnd;
-  container.dataset.search = currentSearch;
-  container.dataset.gap = gapInput;
+  storePanelState(container.dataset.panelID);
 
   const { showGreek, showEnglish, showPcode, showStrongs, showRoots } = getDisplayOptions();
   let showVerses = elements.showVerses.checked;
@@ -1662,6 +1645,13 @@ function render(customVerses = null) {
   }
 
   // Otherwise, existing logic with user-selected start/end refs
+  const bookStart = parseInt(elements.bookStart.value);
+  const chapterStart = parseInt(elements.chapterStart.value);
+  const verseStart = parseInt(elements.verseStart.value);
+  const bookEnd = parseInt(elements.bookEnd.value);
+  const chapterEnd = parseInt(elements.chapterEnd.value);
+  const verseEnd = parseInt(elements.verseEnd.value);
+
   contextBool = false;
 
   let lastBook = null;
@@ -3841,6 +3831,36 @@ function autoGapInputWidth(el) {
 autoGapInputWidth(elements.gapInput);
 
 const outputContainer = document.getElementById("output-container");
+const panelState = {};
+
+function storePanelState(panelID) {
+  panelState[panelID] = {
+    bookStart: parseInt(elements.bookStart.value),
+    chapterStart: parseInt(elements.chapterStart.value),
+    verseStart: parseInt(elements.verseStart.value),
+    bookEnd: parseInt(elements.bookEnd.value),
+    chapterEnd: parseInt(elements.chapterEnd.value),
+    verseEnd: parseInt(elements.verseEnd.value),
+    search: elements.searchInput.value.trim(),
+    gap: parseInt(elements.gapInput.value, 10) || 1
+  };
+}
+
+function loadPanelState(panelID) {
+  const state = panelState[panelID];
+  console.log(panelState)
+  if (!state) return;
+
+  elements.bookStart.value = state.bookStart;
+  elements.chapterStart.value = state.chapterStart;
+  elements.verseStart.value = state.verseStart;
+  elements.bookEnd.value = state.bookEnd;
+  elements.chapterEnd.value = state.chapterEnd;
+  elements.verseEnd.value = state.verseEnd;
+  elements.searchInput.value = state.search;
+  elements.gapInput.value = state.gap;
+  updateDisplay();
+}
 
 function buildPanels(count) {
   const oldOutput = document.getElementById("output");
@@ -3850,6 +3870,7 @@ function buildPanels(count) {
   for (let i = 0; i < count; i++) {
     const div = document.createElement("div");
     div.className = "panel";
+    div.dataset.panelID = i;
 
     if (i === 0 && oldOutput) {
       div.innerHTML = oldOutput.innerHTML;
@@ -3874,29 +3895,13 @@ function buildPanels(count) {
   activate(outputContainer.firstElementChild);
 }
 
-function restoreStateFromPanel(panel) {
-  const d = panel.dataset;
-
-  if (d.bookStart    !== undefined) elements.bookStart.value    = d.bookStart;
-  if (d.chapterStart !== undefined) elements.chapterStart.value = d.chapterStart;
-  if (d.verseStart   !== undefined) elements.verseStart.value   = d.verseStart;
-
-  if (d.bookEnd      !== undefined) elements.bookEnd.value      = d.bookEnd;
-  if (d.chapterEnd   !== undefined) elements.chapterEnd.value   = d.chapterEnd;
-  if (d.verseEnd     !== undefined) elements.verseEnd.value     = d.verseEnd;
-
-  if (d.search       !== undefined) elements.searchInput.value  = d.search;
-  if (d.gap          !== undefined) elements.gapInput.value     = d.gap;
-  updateDisplay(); // Update the ref button displays.
-}
-
 function activate(panel) {
   const current = document.getElementById("output");
   if (current) current.removeAttribute("id");
 
   panel.id = "output";
 
-  restoreStateFromPanel(panel);
+  loadPanelState(panel.dataset.panelID);
 }
 
 function setMode(changed = null) {
@@ -3935,7 +3940,7 @@ function updatePanelHeight() {
       const bottomOfBottomEl = bottomEl.getBoundingClientRect().bottom;
       const topOfTopEl = topEl.getBoundingClientRect().top;
       
-      height = Math.max(0, topOfTopEl - bottomOfBottomEl - 4);
+      height = Math.max(0, topOfTopEl - bottomOfBottomEl - 10);
     } else {
       // Fallback if either element is missing
       height = window.innerHeight;
