@@ -992,7 +992,7 @@ function encodeRangeToUrl() {
     .catch(err => alert("Failed to copy URL: " + err));
   window.history.replaceState(null, "", newUrl);
 
-  togglePopup("savePopup");
+  togglePopup("sharePopup");
 }
 
 // URL Search Save
@@ -1034,7 +1034,7 @@ function saveUrlSearch() {
     .catch(err => alert("Failed to copy URL: " + err));
   window.history.replaceState(null, "", newUrl);
 
-  togglePopup("savePopup");
+  togglePopup("sharePopup");
 }
 
 function resetUrl() {
@@ -1046,7 +1046,7 @@ function resetUrl() {
     .catch(err => alert("Failed to copy URL: " + err));
   window.history.replaceState(null, "", newUrl);
 
-  togglePopup("savePopup");
+  togglePopup("sharePopup");
 }
 
 function applyUrlSearch() {
@@ -2243,7 +2243,7 @@ function showPopupDelay(event) {
   // Wait 300 ms before calling your original showPopup()
   popupDelayTimer = setTimeout(() => {
     showPopup(event); // your existing popup function
-  }, 250);
+  }, 400);
 }
 
 function hidePopup() {
@@ -3437,7 +3437,7 @@ function copyText(mode) {
   const cleanText = mode === "grk" ? "Greek" : "English";
   if (!output) return;
 
-  togglePopup('copyPopup')
+  togglePopup('sharePopup')
 
   // Bail out if grid view is active
   if (output.querySelector(".word-list-grid")) {
