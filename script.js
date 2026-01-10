@@ -1926,117 +1926,146 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
 
     let hasContent = false;
 
-    if (showStrongs && strongs) {
-      wordEl.appendChild(createClickableSpan("pcode", strongs, wordEl));
-      hasContent = true;
-    } else if (showStrongs) {
-      // Add a non-clickable space span for layout consistency
-      const spaceSpan = document.createElement('span');
-      spaceSpan.className = "pcode"
-      spaceSpan.textContent = '\u00A0';
-      wordEl.appendChild(spaceSpan);
+    function appendPcode(wordEl, value) {
+      wordEl.appendChild(createClickableSpan("pcode", value, wordEl));
     }
 
-    if (showPcode && pcode) {
-      wordEl.appendChild(createClickableSpan("pcode", pcode, wordEl));
-      hasContent = true;
-    } else if (showPcode) {
-      // Add a non-clickable space span for layout consistency
-      const spaceSpan = document.createElement('span');
-      spaceSpan.className = "pcode"
-      spaceSpan.textContent = '\u00A0';
-      wordEl.appendChild(spaceSpan);
+    function appendSpacer(wordEl, className = null) {
+      const span = document.createElement('span');
+      if (className) span.className = className;
+      span.textContent = '\u00A0';
+      wordEl.appendChild(span);
     }
 
-    if (showEnglish && pEng && reverseInterlinear) {
+    if (showStrongs) {
+      if (strongs) {
+        appendPcode(wordEl, strongs);
+        hasContent = true;
+      } else {
+        appendSpacer(wordEl, "pcode");
+      }
+    }
+
+    if (showPcode) {
+      if (pcode) {
+        appendPcode(wordEl, pcode);
+        hasContent = true;
+      } else {
+        appendSpacer(wordEl, "pcode");
+      }
+    }
+
+    function appendEng(wordEl, pEng) {
       if (elements.customFormat.checked) {
         wordEl.appendChild(createClickableSpan("eng", processFormatting(pEng), wordEl));
       } else {
         wordEl.appendChild(createClickableSpan("eng", pEng, wordEl));
       }
-      hasContent = true;
-    } else if (showEnglish && reverseInterlinear) {
-      // Add a non-clickable space span for layout consistency
-      const spaceSpan = document.createElement('span');
-      spaceSpan.className = "eng";
-      spaceSpan.textContent = '\u00A0';
-      wordEl.appendChild(spaceSpan);
     }
 
-    if (showGreek && grk) {
+    // English first if reverseInterlinear
+    if (reverseInterlinear) {
+      if (showEnglish) {
+        if (pEng) {
+          appendEng(wordEl, pEng);
+          hasContent = true;
+        } else {
+          appendSpacer(wordEl, "eng");
+        }
+      }
+    }
+
+    function appendGreek(wordEl, grk) {
       if (elements.uncialGreek.checked) {
         grk = toGreek(grk).toUpperCase();
       }
       wordEl.appendChild(createClickableSpan("grk", toGreek(grk), wordEl));
-      hasContent = true;
-    } else if (showGreek) {
-      // Add a non-clickable space span for layout consistency
-      const spaceSpan = document.createElement('span');
-      spaceSpan.textContent = '\u00A0';
-      wordEl.appendChild(spaceSpan);
     }
 
-    if (showEnglish && pEng && !reverseInterlinear) {
-      if (elements.customFormat.checked) {
-        wordEl.appendChild(createClickableSpan("eng", processFormatting(pEng), wordEl));
+    // Greek always in middle
+    if (showGreek) {
+      if (grk) {
+        appendGreek(wordEl, grk);
+        hasContent = true;
       } else {
-        wordEl.appendChild(createClickableSpan("eng", pEng, wordEl));
+        appendSpacer(wordEl);
       }
-      hasContent = true;
-    } else if (showEnglish && !reverseInterlinear) {
-      // Add a non-clickable space span for layout consistency
-      const spaceSpan = document.createElement('span');
-      spaceSpan.className = "eng";
-      spaceSpan.textContent = '\u00A0';
-      wordEl.appendChild(spaceSpan);
     }
 
-    if (showRoots && roots) {
-      const rootParts = roots.split(',').map(r => r.trim());
-
-      // Container for the first root
-      const firstContainer = document.createElement('span');
-      firstContainer.className = 'roots';
-      firstContainer.style.whiteSpace = 'nowrap';
-
-      const firstSpan = createClickableSpan("roots", toGreek(rootParts[0]) + (rootParts.length > 1 ? ':' : ''), wordEl);
-      firstSpan.dataset.search = '.' + toGreek(rootParts[0]);
-      firstContainer.appendChild(firstSpan);
-      wordEl.appendChild(firstContainer);
-
-      // Container for remaining roots
-      const secondContainer = document.createElement('span');
-      secondContainer.className = 'roots';
-      secondContainer.style.whiteSpace = 'nowrap';
-
-      if (rootParts.length > 1) {
-        const remainingRoots = rootParts.slice(1);
-        remainingRoots.forEach((r, i) => {
-          const text = toGreek(r) + (i < remainingRoots.length - 1 ? ',' : '');
-          const span = createClickableSpan("roots", text, wordEl);
-          span.dataset.search = '.' + toGreek(r);
-          secondContainer.appendChild(span);
-        });
-      } else {
-        // Add blank space for layout consistency
-        const spaceSpan = document.createElement('span');
-        spaceSpan.className = "roots"
-        spaceSpan.textContent = '\u00A0';
-        secondContainer.appendChild(spaceSpan);
+    // English last if not reverseInterlinear
+    if (!reverseInterlinear) {
+      if (showEnglish) {
+        if (pEng) {
+          appendEng(wordEl, pEng);
+          hasContent = true;
+        } else {
+          appendSpacer(wordEl, "eng");
+        }
       }
+    }
 
-      wordEl.appendChild(secondContainer);
-      hasContent = true;
-    } else if (showRoots) {
-      // Add a non-clickable space span for layout consistency
+    function createRootsContainer() {
+      const c = document.createElement('span');
+      c.className = 'roots';
+      c.style.whiteSpace = 'nowrap';
+      return c;
+    }
+
+    function createRootSpan(root, suffix, wordEl) {
+      const text = toGreek(root) + suffix;
+      const span = createClickableSpan("roots", text, wordEl);
+      span.dataset.search = '.' + toGreek(root);
+      return span;
+    }
+
+    function appendRootsSpacer(container) {
       const spaceSpan = document.createElement('span');
+      spaceSpan.className = 'roots';
       spaceSpan.textContent = '\u00A0';
-      spaceSpan.className = "pcode"
-      wordEl.appendChild(spaceSpan);
-      const spaceSpan2 = document.createElement('span');
-      spaceSpan2.className = "pcode"
-      spaceSpan2.textContent = '\u00A0';
-      wordEl.appendChild(spaceSpan2);
+      container.appendChild(spaceSpan);
+    }
+
+    const rootParts = roots ? roots.split(',').map(r => r.trim()) : [];
+
+    if (showRoots) {
+      if (rootParts.length > 0) {
+
+        const firstContainer = createRootsContainer();
+        const secondContainer = createRootsContainer();
+
+        // First root
+        const firstRoot = rootParts[0];
+        const hasMore = rootParts.length > 1;
+        firstContainer.appendChild(
+          createRootSpan(firstRoot, hasMore ? ':' : '', wordEl)
+        );
+
+        // Remaining roots
+        if (hasMore) {
+          const remaining = rootParts.slice(1);
+          remaining.forEach((r, i) => {
+            const suffix = i < remaining.length - 1 ? ',' : '';
+            secondContainer.appendChild(
+              createRootSpan(r, suffix, wordEl)
+            );
+          });
+        } else {
+          appendRootsSpacer(secondContainer);
+        }
+
+        wordEl.appendChild(firstContainer);
+        wordEl.appendChild(secondContainer);
+        hasContent = true;
+
+      } else {
+        // two spacers to preserve layout
+        const c1 = createRootsContainer();
+        const c2 = createRootsContainer();
+        appendRootsSpacer(c1);
+        appendRootsSpacer(c2);
+        wordEl.appendChild(c1);
+        wordEl.appendChild(c2);
+      }
     }
 
     if (hasContent) {
