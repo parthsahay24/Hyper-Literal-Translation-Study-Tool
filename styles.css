@@ -3,6 +3,7 @@
   --font-size: 16px;
   --font-size-reduced: 12px;
   --font-size-english: 16px;
+  --font-size-greek: 16px;
   --lightest-tan: #fdfdf5;
   --hover-highlight: #f0e9d8;
   --darker-tan: #e0d4bb;
@@ -120,6 +121,7 @@ body {
 }
 
 .grk { 
+  font-size: var(--font-size-greek);
   color: rgb(124, 0, 0); 
   cursor: pointer;
 }

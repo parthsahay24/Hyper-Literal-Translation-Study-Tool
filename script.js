@@ -536,10 +536,23 @@ function setupEventListeners() {
   const fontSizeSlider = document.getElementById('fontSize');
   const fontSize2Slider = document.getElementById('fontSize2');
   const englishSecondary = document.getElementById('englishSecondary');
+  const greekSecondary = document.getElementById('greekSecondary');
   // Live updates
   fontSizeSlider.addEventListener('input', setFontSize);
   fontSize2Slider.addEventListener('input', setFontSize);
-  englishSecondary.addEventListener('change', setFontSize);
+  englishSecondary.addEventListener('change', () => {
+    if (englishSecondary.checked) {
+      greekSecondary.checked = false;
+    }
+    setFontSize();
+  });
+
+  greekSecondary.addEventListener('change', () => {
+    if (greekSecondary.checked) {
+      englishSecondary.checked = false;
+    }
+    setFontSize();
+  });
 
   elements.searchInput.addEventListener("input", function (e) {
     handleGreekInput(e.target, elements.convertToGreek);
@@ -1183,9 +1196,11 @@ function setFontSize() {
   let size1 = fontSizeScale[elements.fontSize.value];
   let size2 = fontSizeScale[elements.fontSize2.value];
   let size3 = elements.englishSecondary.checked ? size2 : size1;
+  let size4 = elements.greekSecondary.checked ? size2 : size1;
   document.documentElement.style.setProperty("--font-size", size1 + "px");
   document.documentElement.style.setProperty("--font-size-reduced", size2 + "px");
   document.documentElement.style.setProperty("--font-size-english", size3 + "px");
+  document.documentElement.style.setProperty("--font-size-greek", size4 + "px");
   saveSettings();
 }
 
@@ -1933,6 +1948,21 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
       wordEl.appendChild(spaceSpan);
     }
 
+    if (showEnglish && pEng && reverseInterlinear) {
+      if (elements.customFormat.checked) {
+        wordEl.appendChild(createClickableSpan("eng", processFormatting(pEng), wordEl));
+      } else {
+        wordEl.appendChild(createClickableSpan("eng", pEng, wordEl));
+      }
+      hasContent = true;
+    } else if (showEnglish && reverseInterlinear) {
+      // Add a non-clickable space span for layout consistency
+      const spaceSpan = document.createElement('span');
+      spaceSpan.className = "eng";
+      spaceSpan.textContent = '\u00A0';
+      wordEl.appendChild(spaceSpan);
+    }
+
     if (showGreek && grk) {
       if (elements.uncialGreek.checked) {
         grk = toGreek(grk).toUpperCase();
@@ -1946,14 +1976,14 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
       wordEl.appendChild(spaceSpan);
     }
 
-    if (showEnglish && pEng) {
+    if (showEnglish && pEng && !reverseInterlinear) {
       if (elements.customFormat.checked) {
         wordEl.appendChild(createClickableSpan("eng", processFormatting(pEng), wordEl));
       } else {
         wordEl.appendChild(createClickableSpan("eng", pEng, wordEl));
       }
       hasContent = true;
-    } else if (showEnglish) {
+    } else if (showEnglish && !reverseInterlinear) {
       // Add a non-clickable space span for layout consistency
       const spaceSpan = document.createElement('span');
       spaceSpan.className = "eng";
