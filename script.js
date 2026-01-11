@@ -305,8 +305,6 @@ function loadBaseJson() {
     initPickers();
     setupEventListeners();
     setFontSize();
-    storePanelState(0);
-    storePanelState(1);
     setMode();
     if (currentRender === "search") {
       searchVerses();
@@ -865,10 +863,11 @@ function initializeSelections() {
 
   const range = getUrlRange();
 
-  const settings = JSON.parse(localStorage.getItem("userSettings"));
+  const allSettings = loadAllSettings();
+  const settings = allSettings.panels[0] || {};
 
   if (settings) {
-    loadSettings(settings);
+    loadSettings();
   }
 
   if (range?.gapInput > 0) {
@@ -965,6 +964,11 @@ function initializeSelections() {
 
   // Load search params if present
   applyUrlSearch();
+
+  // Initialize panel ref/search based on saved/random data.
+  for (let i = 1; i < maxPanels; i++) {
+    storePanelState(0);
+  }
 }
 
 // Helper function to pad numbers for url encoding
@@ -2341,72 +2345,109 @@ function showPopupTouchEnd(e) {
   }
 }
 
+// Start Settings Code
+
+const SETTINGS_KEY = "userSettingsV3";
+
+function getActivePanelId() {
+  return Number(document.getElementById("output")?.dataset.panelID || 0);
+}
+
+function loadAllSettings() {
+  return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{"global":{}, "panels":[]}');
+}
+
+function saveAllSettings(data) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(data));
+}
+
 function saveSettings(targetAttr = null) {
   // Load existing settings so we only update parts
-  const settings = JSON.parse(localStorage.getItem("userSettings") || "{}");
+  const panelId = getActivePanelId();
+  const data = loadAllSettings();
+
+  const globalSettings = data.global || {};
+  const panelSettings = data.panels[panelId] || {};
 
   for (const [key, el] of Object.entries(elements)) {
     if (!el) continue;
 
     // Case 1: saving only a specific group
-    if (targetAttr) {
-      if (!el.hasAttribute(targetAttr)) continue;
-    } 
+    if (targetAttr && !el.hasAttribute(targetAttr)) continue;
     // Case 2: default save (exclude special groups)
-    else {
-      if (el.hasAttribute("ref-id") || el.hasAttribute("search-id")) continue;
-    }
+    if (!targetAttr && (el.hasAttribute("ref-id") || el.hasAttribute("search-id"))) continue;
+
+    const isGlobal = el.hasAttribute("global-setting");
+    const target = isGlobal ? globalSettings : panelSettings;
 
     // Save checkbox/radio as boolean, others as value
     if (el.type === "checkbox" || el.type === "radio") {
-      settings[key] = el.checked;
+      target[key] = el.checked;
     } else if ("value" in el) {
-      settings[key] = el.value;
+      target[key] = el.value;
     }
   }
 
   // Save header collapse state
-  settings.headerCollapsed = document.getElementById('header')?.classList.contains('collapsed') || false;
+  globalSettings.headerCollapsed = document.getElementById('header')?.classList.contains('collapsed') || false;
 
   // Save collapsed headgroups
-  settings.headGroupsCollapsed = getCollapsedHeadGroups();
+  globalSettings.headGroupsCollapsed = getCollapsedHeadGroups();
 
-  localStorage.setItem("userSettings", JSON.stringify(settings));
+  data.global = globalSettings;
+  data.panels[panelId] = panelSettings;
+
+  saveAllSettings(data);
 }
 
 function resetSettings(targetAttr = null) {
-  const settings = JSON.parse(localStorage.getItem("userSettings") || "{}");
+  const panelId = getActivePanelId();
+  const data = loadAllSettings();
+
+  const panelSettings = data.panels[panelId] || {};
+  const globalSettings = data.global || {};
 
   for (const [key, el] of Object.entries(elements)) {
     if (!el) continue;
 
     // Case 1: reset only a specific group
-    if (targetAttr) {
-      if (!el.hasAttribute(targetAttr)) continue;
-    } 
+    if (targetAttr && !el.hasAttribute(targetAttr)) continue;
     // Case 2: default reset (exclude ref-id and search-id)
-    else {
-      if (el.hasAttribute("ref-id") || el.hasAttribute("search-id")) continue;
-    }
+    if (!targetAttr && (el.hasAttribute("ref-id") || el.hasAttribute("search-id"))) continue;
 
     // Delete from settings
-    delete settings[key];
-    delete settings.headerCollapsed;
-    delete settings.headGroupsCollapsed;
+    if (el.hasAttribute("global-setting")) {
+      delete globalSettings[key];
+    } else {
+      delete panelSettings[key];
+    }
   }
+
+  delete globalSettings.headerCollapsed;
+  delete globalSettings.headGroupsCollapsed;
 
   // Save updated settings back
-  if (Object.keys(settings).length > 0) {
-    localStorage.setItem("userSettings", JSON.stringify(settings));
-  } else {
-    localStorage.removeItem("userSettings");
-  }
+  if (Object.keys(panelSettings).length === 0) delete data.panels[panelId];
+  if (Object.keys(globalSettings).length === 0) delete data.global;
 
+  saveAllSettings(data);
   location.reload();
 }
 
-function loadSettings(settings, pageload=true) {
-    for (const [key, value] of Object.entries(settings)) {
+function loadSettings(pageload=true, global=true) {
+  const panelId = getActivePanelId();
+  const data = loadAllSettings();
+
+  const panelSettings = data.panels[panelId] || {};
+  const globalSettings = data.global || {};
+
+  // Apply globals first, then panel overrides
+  let merged = { ...panelSettings };
+  if (global) {
+    merged = { ...globalSettings, ...panelSettings };
+  }
+
+  for (const [key, value] of Object.entries(merged)) {
     const el = elements[key] || document.getElementById(key);
     if (!el) continue;
 
@@ -2419,12 +2460,12 @@ function loadSettings(settings, pageload=true) {
 
   if (pageload) {
     // Apply header collapse state
-    if (typeof settings.headerCollapsed === 'boolean') {
-      document.getElementById('header')?.classList.toggle('collapsed', settings.headerCollapsed);
+    if (typeof globalSettings.headerCollapsed === 'boolean') {
+      document.getElementById('header')?.classList.toggle('collapsed', globalSettings.headerCollapsed);
     }
 
     // Apply headgroup collapse states
-    setCollapsedHeadGroups(settings.headGroupsCollapsed || []);
+    setCollapsedHeadGroups(panelSettings.headGroupsCollapsed || []);
   }
 }
 
@@ -3830,8 +3871,10 @@ function autoGapInputWidth(el) {
 
 autoGapInputWidth(elements.gapInput);
 
+// Start multi-panel code.
 const outputContainer = document.getElementById("output-container");
 const panelState = {};
+const maxPanels = 1; // Zero-based max panels. Change this if going from 2 panels.
 
 function storePanelState(panelID) {
   panelState[panelID] = {
@@ -3842,13 +3885,13 @@ function storePanelState(panelID) {
     chapterEnd: parseInt(elements.chapterEnd.value),
     verseEnd: parseInt(elements.verseEnd.value),
     search: elements.searchInput.value.trim(),
-    gap: parseInt(elements.gapInput.value, 10) || 1
+    gap: parseInt(elements.gapInput.value, 10) || 1,
+    currentRender: currentRender
   };
 }
 
 function loadPanelState(panelID) {
   const state = panelState[panelID];
-  console.log(panelState)
   if (!state) return;
 
   elements.bookStart.value = state.bookStart;
@@ -3859,6 +3902,7 @@ function loadPanelState(panelID) {
   elements.verseEnd.value = state.verseEnd;
   elements.searchInput.value = state.search;
   elements.gapInput.value = state.gap;
+  currentRender = state.currentRender;
   updateDisplay();
 }
 
@@ -3892,6 +3936,13 @@ function buildPanels(count) {
     outputContainer.appendChild(div);
   }
   updatePanelHeight();
+  for (let i = 1; i < count; i++) { // Start at 1 because first panel is already loaded properly on init.
+    const panel = outputContainer.querySelector(`[data-panel-i-d="${i}"]`);
+    if (panel) {
+      activate(panel);
+      onOptionsChange();
+    }
+  }
   activate(outputContainer.firstElementChild);
 }
 
@@ -3901,6 +3952,7 @@ function activate(panel) {
 
   panel.id = "output";
 
+  loadSettings(false, false);
   loadPanelState(panel.dataset.panelID);
 }
 
