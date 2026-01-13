@@ -32,10 +32,11 @@ const posMap = {
   'Inj': 'interjection',
   'DPro': 'demonstrative pronoun',
   'IPro': 'interrogative/indefinite pronoun',
-  'PPro': 'personal/possessive pronoun',
-  'RecPro': 'reciprocal pronoun',
-  'RelPro': 'relative pronoun',
-  'RefPro': 'reflexive pronoun',
+  'PerPro': 'personal pronoun', 
+  'PosPro': 'possessive pronoun', 
+  'RecPro': 'reciprocal pronoun', 
+  'RelPro': 'relative pronoun', 
+  'RefPro': 'reflexive pronoun', 
   'Heb': 'Hebrew word',
   'Aram': 'Aramaic word',
   '#': 'numeral'
@@ -362,34 +363,71 @@ const onOptionsChange = () => {
 };
 
 let restoring = false;
-const historyStack = [];
-let historyIndex = -1;
+const historyStacks = [];   // array of stacks, one per panel
+const historyIndexes = [];  // array of indexes, one per panel
+
+function initHistoryForPanels(count) {
+  for (let i = 0; i < count; i++) {
+    if (!historyStacks[i]) historyStacks[i] = [];
+    if (historyIndexes[i] === undefined) historyIndexes[i] = -1;
+  }
+}
+
+function statesEqual(a, b) {
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) return false;
+
+  for (const k of aKeys) {
+    if (a[k] !== b[k]) return false;
+  }
+  return true;
+}
 
 function saveState() {
   if (restoring) return;
+
+  const activePanel = document.getElementById("output");
+  if (!activePanel) return;
+
+  const panelID = Number(activePanel.dataset.panelID);
+
+  const stack = historyStacks[panelID];
+  let index = historyIndexes[panelID];
+
   const state = {};
   Object.keys(elements).forEach(id => {
     const el = elements[id];
     if (!el) return;
+    if (el.hasAttribute("global-setting")) return;
 
     if (el.type === "checkbox") state[id] = el.checked;
     else state[id] = el.value;
   });
 
+  // Do not save if identical to current
+  if (index >= 0 && statesEqual(stack[index].state, state)) {
+    return;
+  }
+
   // Remove “future” states if not at the end
-  if (historyIndex < historyStack.length - 1) {
-    historyStack.splice(historyIndex + 1);
+  if (index < stack.length - 1) {
+    stack.splice(index + 1);
   }
 
   // Push new state
-  historyStack.push({ state, currentRender });
-  historyIndex++;
+  stack.push({ state, currentRender });
+  index++;
 
   // Limit to 100
-  if (historyStack.length > 100) {
-    historyStack.shift();
-    historyIndex--;
+  if (stack.length > 100) {
+    stack.shift();
+    index--;
   }
+
+  historyIndexes[panelID] = index;
+
+  updateHistoryButtons(panelID)
 }
 
 function getSizeBytes(obj) {
@@ -399,10 +437,23 @@ function getSizeBytes(obj) {
 // Example
 // console.log("historyStack size (bytes):", getSizeBytes(historyStack));
 
-function loadState(index) {
-  if (index < 0 || index >= historyStack.length) return;
+function loadState(panelID, index) {
+  const stack = historyStacks[panelID];
+  if (!stack) return;
+  if (index < 0 || index >= stack.length) return;
+
+  const activePanel = document.getElementById("output");
+  const originalPanel = activePanel;
+
+  const targetPanel = outputContainer.querySelector(`[data-panel-i-d="${panelID}"]`);
+  if (!targetPanel) return;
+
   restoring = true;
-  const { state, currentRender: renderMode } = historyStack[index];
+
+  if (targetPanel !== originalPanel) {
+    activate(targetPanel);
+  }
+  const { state, currentRender: renderMode } = stack[index];
 
   Object.keys(state).forEach(id => {
     const el = elements[id];
@@ -410,24 +461,69 @@ function loadState(index) {
 
     if (el.type === "checkbox") el.checked = state[id];
     else {
-      if (el.id === "chapterStart") populateChapters(state["bookStart"], el);
-      if (el.id === "chapterEnd") populateChapters(state["bookEnd"], el);
-      if (el.id === "verseStart") populateVerses(state["bookStart"], state["chapterStart"], el);
-      if (el.id === "verseEnd") populateVerses(state["bookEnd"], state["chapterEnd"], el);
+      if (el.id === "chapterStart") populateChapters(state.bookStart, el);
+      if (el.id === "chapterEnd") populateChapters(state.bookEnd, el);
+      if (el.id === "verseStart") populateVerses(state.bookStart, state.chapterStart, el);
+      if (el.id === "verseEnd") populateVerses(state.bookEnd, state.chapterEnd, el);
       el.value = state[id];
     }
   });
 
-  historyIndex = index;
+  historyIndexes[panelID] = index;
 
   // Trigger appropriate re-run
   if (renderMode === "search") searchVerses();
   else render();
+  if (originalPanel && targetPanel !== originalPanel) {
+    activate(originalPanel);
+  }
+
   restoring = false;
 }
 
-function historyBack() { loadState(historyIndex - 1); }
-function historyForward() { loadState(historyIndex + 1); }
+document.addEventListener("keydown", (e) => {
+  const isMac = navigator.platform.toUpperCase().includes("MAC");
+  const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
+
+  if (!ctrlOrCmd) return;
+
+  // Undo: Ctrl+Z / Cmd+Z
+  if (e.key === "z" && !e.shiftKey) {
+    e.preventDefault();
+    historyBack(getActivePanelId());
+  }
+
+  // Redo: Ctrl+Shift+Z / Cmd+Shift+Z
+  if (e.key === "z" && e.shiftKey) {
+    e.preventDefault();
+    historyForward(getActivePanelId());
+  }
+});
+
+function updateHistoryButtons(panelID) {
+  const index = historyIndexes[panelID];
+  const stack = historyStacks[panelID];
+
+  const backBtn = document.querySelector(`[data-history-back="${panelID}"]`);
+  const fwdBtn  = document.querySelector(`[data-history-forward="${panelID}"]`);
+
+  if (!backBtn || !fwdBtn) return;
+
+  backBtn.classList.toggle("inactive", index <= 0);
+  fwdBtn.classList.toggle("inactive", index >= stack.length - 1);
+}
+
+function historyBack(panelID) {
+  const idx = historyIndexes[panelID];
+  loadState(panelID, idx - 1);
+  updateHistoryButtons(panelID);
+}
+
+function historyForward(panelID) {
+  const idx = historyIndexes[panelID];
+  loadState(panelID, idx + 1);
+  updateHistoryButtons(panelID);
+}
 
 function handleGreekInput(input, convertToGreekCheckbox) {
   let originalValue = input.value;
@@ -583,8 +679,10 @@ function setupEventListeners() {
     greekHelpPopup.hidden = true;
   });
 
-  document.getElementById("historyBackBtn").addEventListener("click", historyBack);
-  document.getElementById("historyForwardBtn").addEventListener("click", historyForward);
+  document.getElementById("historyBackBtnRight").addEventListener("click", () => historyBack(1));
+  document.getElementById("historyForwardBtnRight").addEventListener("click", () => historyForward(1));
+  document.getElementById("historyBackBtnLeft").addEventListener("click", () => historyBack(0));
+  document.getElementById("historyForwardBtnLeft").addEventListener("click", () => historyForward(0));
 }
 
 // Fancy Reference Selector Box code.
@@ -1566,7 +1664,7 @@ function render(customVerses = null) {
             span.addEventListener("click", (e) => {
               const isPopupActive = span.closest(".col") === currentPopup;
               const timeSincePopup = Date.now() - popupActivatedAt;
-
+              immediateHidePopup();
               if (isPopupActive && timeSincePopup > 200) {
                 const cleanText = span.textContent.trim();
                 elements.searchInput.value = cleanText;
@@ -1700,7 +1798,7 @@ function render(customVerses = null) {
   }
   elements.gapInput.value = count;
 }
-
+//TEMPMARKER
 function createClickableSpan(className, text, wordEl) {
   const span = document.createElement("span");
   span.className = className;
@@ -1713,6 +1811,7 @@ function createClickableSpan(className, text, wordEl) {
   span.addEventListener("click", (e) => {
     const isPopupActive = wordEl === currentPopup;
     const timeSincePopup = Date.now() - popupActivatedAt;
+    immediateHidePopup(); // Reset popup delay.
     if (isPopupActive && timeSincePopup > 200) {
       const term = span.dataset.search || span.textContent.trim();
       elements.searchInput.value = term;
@@ -1973,7 +2072,11 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
       if (elements.uncialGreek.checked) {
         grk = toGreek(grk).toUpperCase();
       }
-      wordEl.appendChild(createClickableSpan("grk", toGreek(grk), wordEl));
+      if (grk) {
+        wordEl.appendChild(createClickableSpan("grk", toGreek(grk), wordEl));
+      } else {
+        appendSpacer(wordEl, "grk")
+      }
     }
 
     // Greek always in middle
@@ -2307,6 +2410,14 @@ function hidePopup() {
   currentPopup = null;
   popupActivatedAt = 0; // Reset activation time
 }
+
+function immediateHidePopup() {
+  clearTimeout(popupDelayTimer);
+  document.getElementById("wordPopup").style.display = "none";
+  currentPopup = null;
+  popupActivatedAt = 0;
+}
+
 function cancelHidePopup() {
   clearTimeout(popupTimeout);
 }
@@ -3993,9 +4104,15 @@ function resetPanelLayout() {
 }
 
 function buildPanels(count) {
+  if (count === 1) {
+    document.getElementById("historyButtonsRight").style.visibility = "hidden";
+  } else {
+    document.getElementById("historyButtonsRight").style.visibility = "visible";
+  }
   const oldOutput = document.getElementById("output");
 
   resetPanelLayout();
+  initHistoryForPanels(count);
 
   outputContainer.innerHTML = "";
 

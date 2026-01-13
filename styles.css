@@ -6,6 +6,9 @@
   --font-size-greek: 16px;
   --lightest-tan: #fdfdf5;
   --very-light-tan: #f8f6ea;
+  --tint-1: #f6f3e5;
+  --tint-2: #f4efe1;
+  --tint-3: #f2ecdc;
   --hover-highlight: #f0e9d8;
   --darker-tan: #e0d4bb;
   --even-darker-tan: #cbbfa4;
@@ -15,6 +18,8 @@
   --book-width: 60px;
   --number-width: 40px;
   --panel-height: auto;
+  --hover-overlay: rgba(160, 130, 90, 0.20);
+  --highlight-overlay: rgba(160, 130, 90, 0.20);
 }
 
 .verse-label {
@@ -112,13 +117,27 @@ body {
   background: var(--even-darker-tan);
 }
 
-#historyButtons {
+.historyButtons {
   position: fixed;
   top: 1rem;
-  left: 1rem;
   display: flex;
   gap: 5px;
   z-index: 1000;
+}
+
+.historyButtons button.inactive {
+  opacity: 0.4;
+  pointer-events: none;
+  filter: grayscale(1);
+}
+
+#historyButtonsRight {
+  right: 1rem;
+  visibility: hidden;
+}
+
+#historyButtonsLeft {
+  left: 1rem;
 }
 
 .grk { 
@@ -170,23 +189,14 @@ body {
 
 /* Default hover */
 .roots:hover, .pcode:hover, .eng:hover, .grk:hover, .col:hover, .verse-label:hover, #toggleGreekHelp:hover {
-  background-color: var(--hover-highlight);
+  background-color: var(--highlight-overlay);
+  box-shadow: 0 0 6px 2px var(--highlight-overlay);
+  border-radius: 5px; /* optional, soft corners */
 }
 
 /* Highlighted default background */
 .highlightSearch {
-  background-color: var(--hover-highlight);
-}
-
-/* Override hover when inside .highlightSearch */
-.highlightSearch .roots:hover,
-.highlightSearch .pcode:hover,
-.highlightSearch .eng:hover,
-.highlightSearch .grk:hover,
-.highlightSearch .col:hover,
-.highlightSearch .verse-label:hover,
-.highlightSearch #toggleGreekHelp:hover {
-  background-color: var(--darker-tan);
+  background-color: var(--highlight-overlay);
 }
 
 .hi {
@@ -373,6 +383,7 @@ select {
   background-color: inherit; /* or transparent */
   color: inherit;
   cursor: default;
+  box-shadow: 0 0 0 0;
 }
 
 .col {
@@ -708,6 +719,7 @@ select {
   /* end from #output */
   align-content: flex-start;    /* top-align all rows */
   justify-content: flex-start;  /* left-align items */
+  border-radius: 3px;
 }
 
 .divider {
@@ -733,14 +745,5 @@ select {
 
 #notput {
   position: relative;
-  background: var(--very-light-tan);
-}
-
-#notput::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--lightest-tan); /* very subtle dimming */
-  opacity: .3;
-  pointer-events: none;
+  background: var(--tint-2);
 }

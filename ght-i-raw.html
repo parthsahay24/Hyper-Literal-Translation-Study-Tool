@@ -236,9 +236,13 @@
     <!-- <button onclick="updateBCV(3)">Book▶</button> -->
   </div>
   <!-- History Buttons -->
-  <div id="historyButtons">
-    <button id="historyBackBtn" title="Undo last change">← Back</button>
-    <button id="historyForwardBtn" title="Redo last change">Forward →</button>
+  <div class="historyButtons" id="historyButtonsLeft">
+    <button id="historyBackBtnLeft" data-history-back="0" title="Undo last change" class="inactive">← Back</button>
+    <button id="historyForwardBtnLeft" data-history-forward="0" title="Redo last change" class="inactive">Forward →</button>
+  </div>
+  <div class="historyButtons" id="historyButtonsRight">
+    <button id="historyBackBtnRight" data-history-back="1" title="Undo last change" class="inactive">← Back</button>
+    <button id="historyForwardBtnRight" data-history-forward="1" title="Redo last change" class="inactive">Forward →</button>
   </div>
   <div id="helpPopup" class="popup help-popup" style="display:none;">
     <div class="help-content">
