@@ -303,6 +303,7 @@ function loadBaseJson() {
     baseData = baseJson;
     lookupdb = lookupsJson; // or whatever variable you're using for the lookup table
     initializeSelections();
+    autoGapInputWidth(elements.gapInput);
     initPickers();
     setupEventListeners();
     setFontSize();
@@ -1517,11 +1518,20 @@ function insertFwdBack(container) {
 }
 
 let currentRender = "reference"; // used to track current rendering mode, changed in render()
-function render(customVerses = null) {
+function render(customVerses = null, inDouble = false) {
   if (customVerses && Array.isArray(customVerses)) {
     currentRender = "search";
   } else {
     currentRender = "reference";
+  }
+  if (elements.linkPanels.checked && (elements.horizPanel.checked || elements.vertPanel.checked) && currentRender === "reference" && !inDouble) { 
+    let activePanel = getActivePanelId();
+    let inactivePanel = activePanel === 1 ? 0 : 1;
+    activate(outputContainer.querySelector(`[data-panel-i-d="${inactivePanel}"]`), true);
+    render(customVerses, true);
+    activate(outputContainer.querySelector(`[data-panel-i-d="${activePanel}"]`), true);
+    render(customVerses, true);
+    return
   }
   saveState()
   const container = document.getElementById("output");
@@ -2458,7 +2468,7 @@ function showPopupTouchEnd(e) {
 
 // Start Settings Code
 
-const SETTINGS_KEY = "userSettingsV3";
+const SETTINGS_KEY = "userSettingsV4";
 
 function getActivePanelId() {
   return Number(document.getElementById("output")?.dataset.panelID || 0);
@@ -2466,10 +2476,18 @@ function getActivePanelId() {
 
 function loadAllSettings() {
   return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{"global":{}, "panels":[]}');
+  //return JSON.parse('{"global":{}, "panels":[]}'); // Use this line to turn off settings.
 }
 
 function saveAllSettings(data) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(data));
+}
+
+function dumpAllSettings() {
+  localStorage.clear();
+  const baseUrl = window.location.origin + window.location.pathname;
+  const newUrl = `${baseUrl}`;
+  location.reload();
 }
 
 function saveSettings(targetAttr = null) {
@@ -3977,13 +3995,12 @@ fontToggle.addEventListener('change', e => {
 
 function autoGapInputWidth(el) {
   const len = el.value.length || 1;
-  el.style.width = (len + 2) + 'ch';
+  el.style.width = (len + 3) + 'ch';
 }
-
-autoGapInputWidth(elements.gapInput);
 
 // Start multi-panel code.
 const outputContainer = document.getElementById("output-container");
+
 const panelState = {};
 const maxPanels = 1; // Zero-based max panels. Change this if going from 2 panels.
 
@@ -4158,14 +4175,14 @@ function buildPanels(count) {
   activate(outputContainer.firstElementChild);
 }
 
-function activate(panel) {
+function activate(panel, fromRender = false) {
   const current = document.getElementById("output");
   if (current) current.id = "notput";
 
   panel.id = "output";
 
   loadSettings(false, false);
-  loadPanelState(panel.dataset.panelID);
+  if (!fromRender) loadPanelState(panel.dataset.panelID);
 }
 
 function setMode(changed = null) {
@@ -4186,6 +4203,7 @@ function setMode(changed = null) {
     buildPanels(2);
   } else {
     outputContainer.className = "one";
+    if (changed !== "init") activate(outputContainer.querySelector(`[data-panel-i-d="${0}"]`), true); // This line ensures the first panel is active when switching back to single panel mode to avoid any data conflicts.
     buildPanels(1);
   }
 

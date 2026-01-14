@@ -112,7 +112,8 @@
       </label>
     </div>
     <!-- <button class="buttonInDropdown" onclick="saveSettings()">Save Display Settings</button><br> -->
-    <button class="buttonInDropdown" onclick="resetSettings()">Reset Display Settings</button><br>
+    <button class="buttonInDropdown" onclick="resetSettings()">Reset Current Panel</button><br>
+    <button class="buttonInDropdown" onclick="dumpAllSettings()">Reset ALL Settings</button>
   </div>
   <div id="searchPopup" class="popup menu-popup">
     <label title="Any Search: Searches by an exact match rather than a partial match."><input type="checkbox" id="exactMatch" data-id save-id> Exact match</label><br>
@@ -129,7 +130,8 @@
   <div id="panelPopup" class="popup menu-popup">
     <label title="Adds a second panel to the right of the first."><input type="checkbox" id="horizPanel" data-id global-setting onclick="setMode('horiz')"> 2nd Panel Right</label><br>
     <label title="Sets a second panel below the first."><input type="checkbox" id="vertPanel" data-id global-setting onclick="setMode('vert')"> 2nd Panel Below</label><br>
-    <label title="Extend the height of the panels to 90% of the screen."><input type="checkbox" id="smallScreen" data-id global-setting onclick="setMode()"> Taller Panels</label>
+    <label title="Extend the height of the panels to 90% of the screen."><input type="checkbox" id="smallScreen" data-id global-setting onclick="setMode()"> Taller Panels</label><br>
+    <label title="Link both panels. Useful for side-by-side reading."><input type="checkbox" id="linkPanels" data-id global-setting onclick="render()"> Parallel Mode</label>
   </div>
   <div id="sharePopup" class="popup menu-popup">
     <span title="Select which properties to show on screen; any left unchecked will show in the word popup." class="head-group3">
