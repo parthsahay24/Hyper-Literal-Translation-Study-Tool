@@ -494,14 +494,16 @@ document.addEventListener("keydown", (e) => {
 
   if (!ctrlOrCmd) return;
 
+  const key = e.key.toLowerCase(); // normalize
+
   // Undo: Ctrl+Z / Cmd+Z
-  if (e.key === "z" && !e.shiftKey) {
+  if (key === "z" && !e.shiftKey) {
     e.preventDefault();
     historyBack(getActivePanelId());
   }
 
   // Redo: Ctrl+Shift+Z / Cmd+Shift+Z
-  if (e.key === "z" && e.shiftKey) {
+  if (key === "z" && e.shiftKey) {
     e.preventDefault();
     historyForward(getActivePanelId());
   }
