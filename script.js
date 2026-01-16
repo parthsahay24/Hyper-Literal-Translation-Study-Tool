@@ -1544,6 +1544,7 @@ function render(customVerses = null, inDouble = false) {
     render(customVerses, true);
     return
   }
+  immediateHidePopup();
   saveState()
   const container = document.getElementById("output");
   container.innerHTML = "";
@@ -1686,7 +1687,6 @@ function render(customVerses = null, inDouble = false) {
             span.addEventListener("click", (e) => {
               const isPopupActive = span.closest(".col") === currentPopup;
               const timeSincePopup = Date.now() - popupActivatedAt;
-              immediateHidePopup();
               if (isPopupActive && timeSincePopup > 200) {
                 const cleanText = span.textContent.trim();
                 elements.searchInput.value = cleanText;
@@ -1825,7 +1825,7 @@ function render(customVerses = null, inDouble = false) {
   }
   return;
 }
-//TEMPMARKER
+
 function createClickableSpan(className, text, wordEl) {
   const span = document.createElement("span");
   span.className = className;
@@ -1838,9 +1838,10 @@ function createClickableSpan(className, text, wordEl) {
   span.addEventListener("click", (e) => {
     const isPopupActive = wordEl === currentPopup;
     const timeSincePopup = Date.now() - popupActivatedAt;
-    immediateHidePopup(); // Reset popup delay.
     if (isPopupActive && timeSincePopup > 200) {
-      const term = span.dataset.search || span.textContent.trim();
+      const term =
+        span.dataset.search ||
+        span.textContent.trim().split(/\s+/)[0];
       elements.searchInput.value = term;
       searchVerses();
     }
