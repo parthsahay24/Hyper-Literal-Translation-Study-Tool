@@ -70,18 +70,18 @@
       <span>Font Size:</span>
       <span>
         Primary:&nbsp;&nbsp;&nbsp;&nbsp;
-        <input id="fontSize" type="range" min="0" max="12" step="1" value="4" data-id>
+        <input id="fontSize" type="range" min="0" max="12" step="1" value="4" data-id global-setting>
       </span>
       <span>
         Secondary:
-        <input id="fontSize2" type="range" min="0" max="12" step="1" value="2" data-id>
+        <input id="fontSize2" type="range" min="0" max="12" step="1" value="2" data-id global-setting>
       </span>
       <label title="When checked, English text will use the secondary font size.">
-        <input type="checkbox" id="englishSecondary" data-id>
+        <input type="checkbox" id="englishSecondary" data-id global-setting>
         English Secondary
       </label>
             <label title="When checked, Greek text will use the secondary font size.">
-        <input type="checkbox" id="greekSecondary" data-id>
+        <input type="checkbox" id="greekSecondary" data-id global-setting>
         Greek Secondary
       </label>
     </span>
@@ -97,22 +97,23 @@
         step="0.05"
         value="0.15"
         data-id
+        global-setting
       >
     </div>
     <div id="borderControl">
       <label>
-        <input type="checkbox" id="borderToggle" data-id>
+        <input type="checkbox" id="borderToggle" data-id global-setting>
         Show word borders
       </label>
     </div>
     <div id="fontControl">
       <label>
-        <input type="checkbox" id="fontToggle" data-id>
+        <input type="checkbox" id="fontToggle" data-id global-setting>
         Sans-serif typeface
       </label>
     </div>
     <!-- <button class="buttonInDropdown" onclick="saveSettings()">Save Display Settings</button><br> -->
-    <button class="buttonInDropdown" onclick="resetSettings(null, true)">Reset Current Panel</button><br>
+    <!-- <button class="buttonInDropdown" onclick="resetSettings(null, true)">Reset Current Panel</button><br> -->
     <button class="buttonInDropdown" onclick="dumpAllSettings()">Reset ALL Settings</button>
   </div>
   <div id="searchPopup" class="popup menu-popup">
@@ -125,7 +126,7 @@
     <label title="Phrase Search: Only show words when they are adjacent."><input id="adjacent" type="checkbox" data-id save-id> Adjacent</label><br>
     <label title="Will find combining morphology letters when checked."><input id="expandMorph" type="checkbox" data-id save-id checked> ExpandMorph</label><br>
     <!-- <button class="buttonInDropdown" onclick="saveSettings('save-id')">Save Search Settings</button><br> -->
-    <button class="buttonInDropdown" onclick="resetSettings('save-id', true)">Reset Search Settings</button>
+    <!-- <button class="buttonInDropdown" onclick="resetSettings('save-id', true)">Reset Search Settings</button> -->
   </div>
   <div id="panelPopup" class="popup menu-popup">
     <label title="Adds a second panel to the right of the first."><input type="checkbox" id="horizPanel" data-id global-setting onclick="setMode('horiz')"> 2nd Panel Right</label><br>
@@ -175,7 +176,7 @@
     </span>
     <span class="head-group2">
       <button onclick="saveSettings('ref-id')">Save Reference</button>
-      <button onclick="resetSettings('ref-id')">Reset Reference</button>
+      <button onclick="resetSettings('ref-id', true)">Reset Reference</button>
     </span>
     <span class="collapse-bar" onclick="toggleHeadGroups('headWrapper')" title="Collapse / Expand controls"></span>
   </span>
@@ -253,12 +254,7 @@
         <a href="http://ghukek.com/ght.html" style="font-size: 0.6em; margin-left: 0.5em;">(More info and contact)</a>
       </h2>
       <h3>Recent Changes:</h3>
-      <p>25 Dec: Added collapsing for the header, the reference group and the search group in consideration of mobile browser screen real estate.</p>
-      <p>25 Dec: Added page navigation buttons that navigated according to the current verse range.</p>
-      <p>27 Dec: Added navigation using arrow keys.</p>
-      <p>1 Jan: Added typeface selection toggle, swapped to sliders for font size, added padding slider, added word border toggle.</p>
-      <p>3-4 Jan: Added fancy reference selection box.</p>
-      <p>5 Jan: Minor UI clean-up and performance bug fixes. Added majuscule mode.</p>
+      <p>xx Jan: Major update adding panels and significant auxiliary UI improvements.</p>
       <h3>Reference Selection:</h3>
       <p>Select your start or end book, chapter, and verse from "Start Ref" and "End Ref". </p>
       <p>You may manually adjust how many verses to show at a time by changing the number in between "Show" and "verses" when "Fixed" is enabled.</p>

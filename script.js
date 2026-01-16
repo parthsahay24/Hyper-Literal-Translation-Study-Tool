@@ -2527,6 +2527,7 @@ function dumpAllSettings() {
   localStorage.clear();
   const baseUrl = window.location.origin + window.location.pathname;
   const newUrl = `${baseUrl}`;
+  window.history.replaceState(null, "", newUrl);
   location.reload();
 }
 
@@ -2592,17 +2593,21 @@ function resetSettings(targetAttr = null, panelOnly = null) {
     }
   }
 
-  if (!panelOnly) {p
+  if (!panelOnly) {
     delete globalSettings.headerCollapsed;
     delete globalSettings.headGroupsCollapsed;
   }
 
   // Save updated settings back
   if (Object.keys(panelSettings).length === 0) delete data.panels[panelId];
-  if (Object.keys(globalSettings).length === 0) delete data.global;
+  if (Object.keys(globalSettings).length === 0 && !panelOnly) delete data.global;
 
   saveAllSettings(data);
-  location.reload();
+  if (targetAttr === "ref-id") {
+    showToast(`Reference Reset!`)
+  } else {
+    location.reload();
+  }
 }
 
 function loadSettings(pageload=true, global=true) {
@@ -2627,6 +2632,11 @@ function loadSettings(pageload=true, global=true) {
     } else if ("value" in el) {
       el.value = value;
     }
+
+    if (key === "bookStart") populateChapters(value,  elements.chapterStart);
+    if (key === "bookEnd") populateChapters(value, elements.chapterEnd);
+    if (key === "chapterStart") populateVerses(elements.bookStart.value, value, elements.verseStart);
+    if (key === "chapterEnd") populateVerses(elements.bookEnd.value, value, elements.verseEnd)
   }
 
   if (pageload) {
