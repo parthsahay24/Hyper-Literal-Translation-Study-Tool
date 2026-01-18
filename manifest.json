@@ -1,0 +1,17 @@
+{
+  "name": "Offline GHT-I",
+  "short_name": "GHT-I",
+  "start_url": "pwa.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e0d4bb",
+  "theme_color": "#e0d4bb",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+  ]
+}
+

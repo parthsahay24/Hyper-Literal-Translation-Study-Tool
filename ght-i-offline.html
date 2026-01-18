@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offline GHT-I</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#e0d4bb">
+<style>
+  body {
+    font-family: "Times New Roman", serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 2rem;
+    background-color: #fdfdf5;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .info-box {
+    background-color: #f0e9d8;
+    border: 1px solid #c5b892;
+    border-radius: 8px;
+    padding: 1.5rem;
+    max-width: 500px;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  button {
+    font-family: "Times New Roman", serif;
+    font-size: 1.2rem;
+    padding: 0.8rem 1.2rem;
+    margin: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #c5b892;
+    background-color: #e0d4bb;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  button:hover {
+    background-color: #d4c3a2;
+  }
+  #installBtn {
+    display: none; /* only shown when install prompt is ready */
+  }
+  #openBtn {
+    background-color: #f0e9d8;
+  }
+</style>
+</head>
+<body>
+  <h1>GHT-I Offline</h1>
+
+  <div class="info-box">
+    <p>Install this app to your home screen for full offline access to the GHT Interlinear Study Tool.</p>
+    <p>Or open the app directly below:</p>
+  </div>
+
+  <div>
+    <button id="installBtn">Install App</button>
+    <button id="openBtn">Open App</button>
+  </div>
+
+<script>
+let deferredPrompt;
+
+// Show install button when browser triggers beforeinstallprompt
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault(); // Prevent Chrome's mini prompt
+  deferredPrompt = e;
+  document.getElementById('installBtn').style.display = 'inline-block';
+});
+
+// Handle install button click
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log('User response to install:', outcome);
+    deferredPrompt = null;
+  }
+});
+
+// Open the main app directly
+document.getElementById('openBtn').addEventListener('click', () => {
+  window.location.href = 'ght-i.html';
+});
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+    .then(() => console.log('Service worker registered'))
+    .catch(err => console.log('SW registration failed:', err));
+}
+</script>
+</body>
+</html>
+
