@@ -1,4 +1,5 @@
 const debugMode = true;
+const debugModeExtra = false;
 
 const greekToUnicode = {
   a: 'α', b: 'β', g: 'γ', d: 'δ',
@@ -594,29 +595,61 @@ function historyForward(panelID) {
   updateHistoryButtons(panelID);
 }
 
-function handleGreekInput(input, convertToGreekCheckbox) {
-  if (debugMode) console.log("handleGreekInput()")
-  let originalValue = input.value;
+function handleGreekInput(e) {
+  if (debugModeExtra) console.log("handleGreekInput()") // Upon every key press.
+  const input = e.target;
+  const originalValue = input.value;
 
-  // Always remove Greek diacritical marks
-  originalValue = originalValue.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const normalized = originalValue
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 
-  // If convertToGreek is checked, convert Latin chars to Greek
-  if (convertToGreekCheckbox.checked) {
-    let converted = "";
-    for (const char of originalValue.toLowerCase()) {
-      converted += latinToGreek[char] || char;  // fallback if no match
-    }
+  if (normalized !== originalValue) {
+    const pos = input.selectionStart;
+    input.value = normalized;
+    input.setSelectionRange(pos, pos);
+  }
+}
 
-    // Avoid cursor jump
-    if (converted !== input.value) {
-      input.value = converted;
-    }
-  } else {
-    // Even if not converting, still update stripped diacritics
-    if (originalValue !== input.value) {
-      input.value = originalValue;
-    }
+function handleGreekBeforeInput(e, convertToGreekCheckbox) {
+  if (debugModeExtra) console.log("handleGreekInput()") // Upon every key press.
+  if (!convertToGreekCheckbox.checked) return;
+  if (e.inputType !== "insertText") return;
+  if (!e.data) return;
+
+  e.preventDefault();
+
+  const input = e.target;
+  const start = input.selectionStart;
+  const end = input.selectionEnd;
+
+  const cleanChar = e.data
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  const greekChar = latinToGreek[cleanChar] || cleanChar;
+
+  input.setRangeText(greekChar, start, end, "end");
+}
+
+function blockSpacesBeforeInput(e) {
+  // Block typing a space
+  if (e.inputType === "insertText" && e.data === " ") {
+    e.preventDefault();
+    return;
+  }
+
+  // Block pasted spaces
+  if (e.inputType === "insertFromPaste" && e.data?.includes(" ")) {
+    e.preventDefault();
+
+    const input = e.target;
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+
+    const noSpaces = e.data.replace(/\s+/g, "");
+    input.setRangeText(noSpaces, start, end, "end");
   }
 }
 
@@ -721,9 +754,11 @@ function setupEventListeners() {
     setFontSize();
   });
 
-  elements.searchInput.addEventListener("input", function (e) {
-    handleGreekInput(e.target, elements.convertToGreek);
-  });
+  elements.searchInput.addEventListener("beforeinput", (e) =>
+    handleGreekBeforeInput(e, elements.convertToGreek)
+  );
+
+  elements.searchInput.addEventListener("input", handleGreekInput);
 
   window.addEventListener('click', function (e) {
     const isMenuPopup = e.target.closest('.menu-popup, .ref-popup');
@@ -1920,7 +1955,7 @@ function render(customVerses = null, inDouble = false) {
 }
 
 function createClickableSpan(className, text, wordEl) {
-  if (debugMode) console.log("createClickableSpan()");
+  if (debugModeExtra) console.log("createClickableSpan()");
   const span = document.createElement("span");
   span.className = className;
   if (elements.customFormat.checked && className === "eng") {
@@ -3973,10 +4008,23 @@ function addTermRow(termOp = "", termValue = "", connector = "") {
   input.value = termValue;
 
   // --- HERE: attach Greek input handling
-  input.addEventListener("input", function(e) {
+  input.addEventListener("beforeinput", function(e) {
     const convertToGreek2 = document.getElementById("convertToGreek2");
-    handleGreekInput(e.target, convertToGreek2);
+    handleGreekBeforeInput(e, elements.convertToGreek)
   });
+
+  input.addEventListener("input", function (e) {
+    const el = e.target;
+    const cleaned = el.value.replace(/\s+/g, "");
+
+    if (cleaned !== el.value) {
+      const pos = el.selectionStart;
+      el.value = cleaned;
+      el.setSelectionRange(pos, pos);
+    }
+  });
+
+  input.addEventListener("input", handleGreekInput);
 
   // --- Connector dropdown (+, |, space)
   const connectorSelect = document.createElement("select");
