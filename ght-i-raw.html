@@ -50,38 +50,38 @@
   <div id="displayPopup" class="popup menu-popup">
     <span title="Select which properties to show on screen; any left unchecked will show in the word popup." class="head-group3">
       <span>Show on Screen:</span>
-      <label><input type="checkbox" id="showGreek" checked data-id> Greek</label>
-      <label><input type="checkbox" id="showEnglish" checked data-id> English</label>
-      <label><input type="checkbox" id="showPcode" data-id> Morphology</label>
-      <label><input type="checkbox" id="showStrongs" data-id> Strong's</label>
-      <label><input type="checkbox" id="showRoots" data-id> Roots</label>
+      <label><input type="checkbox" id="showGreek" checked data-id autocomplete="off"> Greek</label>
+      <label><input type="checkbox" id="showEnglish" checked data-id autocomplete="off"> English</label>
+      <label><input type="checkbox" id="showPcode" data-id autocomplete="off"> Morphology</label>
+      <label><input type="checkbox" id="showStrongs" data-id autocomplete="off"> Strong's</label>
+      <label><input type="checkbox" id="showRoots" data-id autocomplete="off"> Roots</label>
     </span>
-    <label><input type="checkbox" id="showVerses" checked data-id> Show verse numbers</label><br>
-    <label><input type="checkbox" id="newlineAfterVerse" data-id> New line after each verse</label><br>
-    <label title="When checked, show the GHT English word order, otherwise use the word order as used in the original Greek text."><input type="checkbox" id="reverseInterlinear" checked data-id> Reverse Interlinear</label><br>
-    <label title="When checked, highlight any word that matches the search conditions."><input type="checkbox" id="highlightSearch" checked data-id> Highlight Search Results</label><br>
-    <label title="When checked, English text will use Nathan's formatting style."><input type="checkbox" id="customFormat" data-id> Format English</label><br>
-    <label title="Search for alternatives. WARNING: Data will load slower when this is checked."><input type="checkbox" id="altSearch" data-id> Show Alternates (in pop-up)</label><br>
-    <label title="Please don't use this for long."><input type="checkbox" id="translitGreek"> Transliterate (in pop-up)</label><br>
-    <label title="ALLCAPSMODE"><input type="checkbox" id="uncialGreek" data-id> Majuscule Mode</label><br>
+    <label><input type="checkbox" id="showVerses" checked data-id  autocomplete="off"> Show verse numbers</label><br>
+    <label><input type="checkbox" id="newlineAfterVerse" data-id autocomplete="off"> New line after each verse</label><br>
+    <label title="When checked, show the GHT English word order, otherwise use the word order as used in the original Greek text."><input type="checkbox" id="reverseInterlinear" checked data-id autocomplete="off"> Reverse Interlinear</label><br>
+    <label title="When checked, highlight any word that matches the search conditions."><input type="checkbox" id="highlightSearch" checked data-id autocomplete="off"> Highlight Search Results</label><br>
+    <label title="When checked, English text will use Nathan's formatting style."><input type="checkbox" id="customFormat" data-id autocomplete="off"> Format English</label><br>
+    <label title="Search for alternatives. WARNING: Data will load slower when this is checked."><input type="checkbox" id="altSearch" data-id autocomplete="off"> Show Alternates (in pop-up)</label><br>
+    <label title="Please don't use this for long."><input type="checkbox" id="translitGreek" autocomplete="off"> Transliterate (in pop-up)</label><br>
+    <label title="ALLCAPSMODE"><input type="checkbox" id="uncialGreek" data-id autocomplete="off"> Majuscule Mode</label><br>
     <label title="Select how many search results or verses to show at a time." for="searchSize">Max Results:</label>
-    <input id="searchSize" type="number" value="100" min="1" step="1" style="width: 45px;" data-id><br>
+    <input id="searchSize" type="number" value="100" min="1" step="1" style="width: 45px;" data-id autocomplete="off"><br>
     <span title="Font size adjustment." class="head-group3">
       <span>Font Size:</span>
       <span>
         Primary:&nbsp;&nbsp;&nbsp;&nbsp;
-        <input id="fontSize" type="range" min="0" max="12" step="1" value="4" data-id global-setting>
+        <input id="fontSize" type="range" min="0" max="12" step="1" value="4" data-id global-setting autocomplete="off">
       </span>
       <span>
         Secondary:
-        <input id="fontSize2" type="range" min="0" max="12" step="1" value="2" data-id global-setting>
+        <input id="fontSize2" type="range" min="0" max="12" step="1" value="2" data-id global-setting autocomplete="off">
       </span>
       <label title="When checked, English text will use the secondary font size.">
-        <input type="checkbox" id="englishSecondary" data-id global-setting>
+        <input type="checkbox" id="englishSecondary" data-id global-setting autocomplete="off">
         English Secondary
       </label>
-            <label title="When checked, Greek text will use the secondary font size.">
-        <input type="checkbox" id="greekSecondary" data-id global-setting>
+      <label title="When checked, Greek text will use the secondary font size.">
+        <input type="checkbox" id="greekSecondary" data-id global-setting autocomplete="off">
         Greek Secondary
       </label>
     </span>
@@ -98,17 +98,18 @@
         value="0.15"
         data-id
         global-setting
+        autocomplete="off"
       >
     </div>
     <div id="borderControl">
       <label>
-        <input type="checkbox" id="borderToggle" data-id global-setting>
+        <input type="checkbox" id="borderToggle" data-id global-setting autocomplete="off">
         Show word borders
       </label>
     </div>
     <div id="fontControl">
       <label>
-        <input type="checkbox" id="fontToggle" data-id global-setting>
+        <input type="checkbox" id="fontToggle" data-id global-setting autocomplete="off">
         Sans-serif typeface
       </label>
     </div>
@@ -117,22 +118,22 @@
     <button class="buttonInDropdown" onclick="dumpAllSettings()">Reset ALL Settings</button>
   </div>
   <div id="searchPopup" class="popup menu-popup">
-    <label title="Any Search: Searches by an exact match rather than a partial match."><input type="checkbox" id="exactMatch" data-id save-id> Exact match</label><br>
-    <label title="Context or Phrase Search: Center the verse that contains the search results within the verse range."><input id="centerRange" type="checkbox" data-id save-id> Center ref</label><br>
-    <label title="Single-word Search: Show results in context according to the verse range."><input type="checkbox" id="showContext" data-id save-id> Show context</label><br>
-    <label title="Single-word Search: Only show unique word pairs."><input id="uniqueWords" type="checkbox" data-id save-id> Unique words</label><br>
-    <label title="Single-word Search: Only search using normalized English for broader results."><input id="normalized" type="checkbox" data-id save-id> Normalize English</label><br>
-    <label title="Phrase Search: Only show words when they are in the requested order."><input id="ordered" type="checkbox" data-id save-id> Ordered</label><br>
-    <label title="Phrase Search: Only show words when they are adjacent."><input id="adjacent" type="checkbox" data-id save-id> Adjacent</label><br>
-    <label title="Will find combining morphology letters when checked."><input id="expandMorph" type="checkbox" data-id save-id checked> ExpandMorph</label><br>
+    <label title="Any Search: Searches by an exact match rather than a partial match."><input type="checkbox" id="exactMatch" data-id save-id autocomplete="off"> Exact match</label><br>
+    <label title="Context or Phrase Search: Center the verse that contains the search results within the verse range."><input id="centerRange" type="checkbox" data-id save-id autocomplete="off"> Center ref</label><br>
+    <label title="Single-word Search: Show results in context according to the verse range."><input type="checkbox" id="showContext" data-id save-id autocomplete="off"> Show context</label><br>
+    <label title="Single-word Search: Only show unique word pairs."><input id="uniqueWords" type="checkbox" data-id save-id autocomplete="off"> Unique words</label><br>
+    <label title="Single-word Search: Only search using normalized English for broader results."><input id="normalized" type="checkbox" data-id save-id autocomplete="off"> Normalize English</label><br>
+    <label title="Phrase Search: Only show words when they are in the requested order."><input id="ordered" type="checkbox" data-id save-id autocomplete="off"> Ordered</label><br>
+    <label title="Phrase Search: Only show words when they are adjacent."><input id="adjacent" type="checkbox" data-id save-id autocomplete="off"> Adjacent</label><br>
+    <label title="Will find combining morphology letters when checked."><input id="expandMorph" type="checkbox" data-id save-id checked autocomplete="off"> ExpandMorph</label><br>
     <!-- <button class="buttonInDropdown" onclick="saveSettings('save-id')">Save Search Settings</button><br> -->
     <!-- <button class="buttonInDropdown" onclick="resetSettings('save-id', true)">Reset Search Settings</button> -->
   </div>
   <div id="panelPopup" class="popup menu-popup">
-    <label title="Adds a second panel to the right of the first."><input type="checkbox" id="horizPanel" data-id global-setting onclick="setMode('horiz')"> 2nd Panel Right</label><br>
-    <label title="Sets a second panel below the first."><input type="checkbox" id="vertPanel" data-id global-setting onclick="setMode('vert')"> 2nd Panel Below</label><br>
-    <label title="Extend the height of the panels to 90% of the screen."><input type="checkbox" id="smallScreen" data-id global-setting onclick="setMode()"> Taller Panels</label><br>
-    <label title="Link both panels. Useful for side-by-side reading."><input type="checkbox" id="linkPanels" data-id global-setting onclick="render()"> Parallel Mode</label><br>
+    <label title="Adds a second panel to the right of the first."><input type="checkbox" id="horizPanel" data-id global-setting onclick="setMode('horiz')" autocomplete="off"> 2nd Panel Right</label><br>
+    <label title="Sets a second panel below the first."><input type="checkbox" id="vertPanel" data-id global-setting onclick="setMode('vert')" autocomplete="off"> 2nd Panel Below</label><br>
+    <label title="Extend the height of the panels to 90% of the screen."><input type="checkbox" id="smallScreen" data-id global-setting onclick="setMode()" autocomplete="off"> Taller Panels</label><br>
+    <label title="Link both panels. Useful for side-by-side reading."><input type="checkbox" id="linkPanels" data-id global-setting onclick="render()" autocomplete="off"> Parallel Mode</label><br>
     <button id="swapPanelsBtn">Swap Panels</button>
   </div>
   <div id="sharePopup" class="popup menu-popup">
@@ -160,10 +161,10 @@
       <select id="chapterStart" data-id ref-id hidden></select>
       <select id="verseStart" data-id ref-id hidden></select>
       <label title="Select how many verses to show during context searches or when fixing impossible reference range selections." for="gapInput">&nbsp;Show&nbsp;</label>
-      <input id="gapInput" type="number" value="1" min="1" step="1" style="width: 38px;" oninput="autoGapInputWidth(this)" data-id ref-id save-id>&nbsp;verses
+      <input id="gapInput" type="number" value="1" min="1" step="1" style="width: 38px;" oninput="autoGapInputWidth(this)" data-id ref-id save-id autocomplete="off">&nbsp;verses
     </span>
     <span class="head-group2">
-      <label title="Force the browser to maintain the selected Verse Range when navigating."><input type="checkbox" id="enforceGap" checked data-id>Fixed</label>&nbsp;
+      <label title="Force the browser to maintain the selected Verse Range when navigating."><input type="checkbox" id="enforceGap" checked data-id autocomplete="off">Fixed</label>&nbsp;
       <button onclick="render()">Load</button>
     </span>
     <span class="head-group2">
@@ -190,11 +191,11 @@
   </span>
   <span class="head-group-wrapper" id="headWrapper2">
     <span class="head-group2 keep-visible">
-      <input type="text" id="searchInput" placeholder="Enter search term" data-id save-id/>
+      <input type="text" id="searchInput" placeholder="Enter search term" data-id save-id autocomplete="off"/>
       <button id="searchBtn" data-id>Search</button>
     </span>
     <span class="head-group2">
-      <label title="Convert keyboard input to Greek letters"><input type="checkbox" id="convertToGreek" data-id save-id> Greek Keyboard</label>
+      <label title="Convert keyboard input to Greek letters"><input type="checkbox" id="convertToGreek" data-id save-id autocomplete="off"> Greek Keyboard</label>
       <button id="toggleGreekHelp" type="button" title="Show Greek keyboard layout">?</button>
       <div id="greekHelpPopup" class="popup-image" hidden>
         <img src="grkkeyboard.png" alt="Greek Keyboard Layout">
@@ -208,7 +209,7 @@
           <!-- Greek Keyboard Toggle Image -->
           <img id="greekKeyboardImage" src="grkkeyboard.png" alt="Greek Keyboard Layout" style="display:none; width: 300px; margin-top: 5px;">
           <br>
-          <label title="Convert keyboard input to Greek letters"><input type="checkbox" id="convertToGreek2" onclick="keyboardswitch()"> Greek Keyboard</label>
+          <label title="Convert keyboard input to Greek letters"><input type="checkbox" id="convertToGreek2" onclick="keyboardswitch()" autocomplete="off"> Greek Keyboard</label>
           <button id="toggleGreekImageBtn" type="button" title="Show/Hide Greek keyboard help">?</button>
           
           <div id="queryBuilderContainer"></div>

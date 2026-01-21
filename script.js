@@ -1,3 +1,5 @@
+const debugMode = true;
+
 const greekToUnicode = {
   a: 'α', b: 'β', g: 'γ', d: 'δ',
   e: 'ε', z: 'ζ', h: 'η', u: 'θ',
@@ -105,6 +107,7 @@ function toLatin(str) {
 
 // Options popups.
 function togglePopup(id) {
+  if (debugMode) console.log("togglePopup()")
   // Close any other popups
   document.querySelectorAll('.popup').forEach(p => {
     if (p.id !== id) p.style.display = 'none';
@@ -152,6 +155,7 @@ function togglePopup(id) {
 
 
 function toggleHelpPopup(pop, but) {
+  if (debugMode) console.log("toggleHelpPopup()")
   const popup = document.getElementById(pop);
   const button = document.getElementById(but);
 
@@ -186,6 +190,7 @@ function toggleHelpPopup(pop, but) {
 }
 
 async function getLastModified(url) {
+  if (debugMode) console.log("getLastModified()")
   try {
     const res = await fetch(url, { method: "GET", cache: "no-store" });
     const lastMod = res.headers.get("last-modified");
@@ -197,6 +202,7 @@ async function getLastModified(url) {
 }
 
 async function updateToolLastUpdated() {
+  if (debugMode) console.log("updateToolLastUpdated()")
   const el = document.getElementById("tool_last_updated");
 
   let lastModifiedUTC = el?.dataset.compileLastmod || null;
@@ -233,6 +239,7 @@ let baseData;
 let lookupdb;
 // Main initialization function
 function loadBaseJson() {
+  if (debugMode) console.log("loadBaseJson()")
   const params = new URLSearchParams(window.location.search);
   const dbName = params.get("db") === "basex" ? "basex.json" : "base.json";
   const lookupsName = params.get("db") === "basex" ? "lookupsex.json" : "lookups.json";
@@ -322,6 +329,7 @@ function loadBaseJson() {
 }
 
 function getCount() {
+  if (debugMode) console.log("getCount()")
   // Used to determine progress of translation. Maintain this code in case we do OT later.
   let countWithIdent = 0;
 
@@ -386,6 +394,7 @@ function statesEqual(a, b) {
 }
 
 function saveState() {
+  if (debugMode) console.log("saveState()")
   if (restoring) return;
 
   const activePanel = document.getElementById("output");
@@ -442,6 +451,7 @@ function getSizeBytes(obj) {
 // console.log("historyStack size (bytes):", getSizeBytes(historyStack));
 
 function loadState(panelID, index) {
+  if (debugMode) console.log("loadState()")
   const stack = historyStacks[panelID];
   if (!stack) return;
   if (index < 0 || index >= stack.length) return;
@@ -493,6 +503,7 @@ document.getElementById("swapPanelsBtn").addEventListener("click", () => {
 });
 
 function activateAllPanelsAndRefresh() {
+  if (debugMode) console.log("activateAllPanelsAndRefresh()")
   const current = document.getElementById("output");
   const originalPanelID = current?.dataset.panelID;
 
@@ -515,6 +526,7 @@ function activateAllPanelsAndRefresh() {
 }
 
 function swapPanelsHistory(a = 0, b = 1) {
+  if (debugMode) console.log("swapPanelsHistory()")
   console.log(historyStacks[0]['bookStart'])
   if (!historyStacks[0] || !historyStacks[1]) return;
   // swap history stacks
@@ -555,6 +567,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 function updateHistoryButtons(panelID) {
+  if (debugMode) console.log("updateHistoryButtons()")
   const index = historyIndexes[panelID];
   const stack = historyStacks[panelID];
 
@@ -568,18 +581,21 @@ function updateHistoryButtons(panelID) {
 }
 
 function historyBack(panelID) {
+  if (debugMode) console.log("historyBack()")
   const idx = historyIndexes[panelID];
   loadState(panelID, idx - 1);
   updateHistoryButtons(panelID);
 }
 
 function historyForward(panelID) {
+  if (debugMode) console.log("historyForward()")
   const idx = historyIndexes[panelID];
   loadState(panelID, idx + 1);
   updateHistoryButtons(panelID);
 }
 
 function handleGreekInput(input, convertToGreekCheckbox) {
+  if (debugMode) console.log("handleGreekInput()")
   let originalValue = input.value;
 
   // Always remove Greek diacritical marks
@@ -606,6 +622,7 @@ function handleGreekInput(input, convertToGreekCheckbox) {
 
 // Called only after baseData is loaded
 function setupEventListeners() {
+  if (debugMode) console.log("setupEventListeners()");
   // Helper for start/end selectors
   const rangeSelectors = [
     { book: "bookStart", chapter: "chapterStart", verse: "verseStart", type: "start" },
@@ -742,6 +759,7 @@ function setupEventListeners() {
 // Fancy Reference Selector Box code.
 
 function makeHeaderSpacerFromColumn(col, text) {
+  if (debugMode) console.log("makeHeaderSpacerFromColumn()");
   const spacer = document.createElement("div");
   spacer.className = "ref-header-spacer";
   spacer.textContent = text;
@@ -756,10 +774,12 @@ function makeHeaderSpacerFromColumn(col, text) {
 
 let useAbbrev = true; // controlled externally
 function getBookLabel(i) {
+  if (debugMode) console.log("getBookLabel()");
   return useAbbrev ? bookAbb[i] : bookNames[i];
 }
 
 function selectBook(prefix, i) {
+  if (debugMode) console.log("selectBook()");
   const bookSel = document.getElementById("book" + prefix);
   if (!bookSel) return;
 
@@ -770,6 +790,7 @@ function selectBook(prefix, i) {
 }
 
 function selectChapter(prefix, i) {
+  if (debugMode) console.log("selectChapter()");
   const chapSel = document.getElementById("chapter" + prefix);
   if (!chapSel) return;
 
@@ -781,6 +802,7 @@ function selectChapter(prefix, i) {
 }
 
 function selectVerse(prefix, i, close = true) {
+  if (debugMode) console.log("selectVerse()");
   const verseSel = document.getElementById("verse" + prefix);
   if (!verseSel) return;
 
@@ -793,6 +815,7 @@ function selectVerse(prefix, i, close = true) {
 }
 
 function buildBookList(prefix) {
+  if (debugMode) console.log("buildBookList()");
   const bookCol = document.getElementById(prefix + "Books");
   bookCol.innerHTML = "";
   bookNames.forEach((_, i) => {
@@ -805,6 +828,7 @@ function buildBookList(prefix) {
 }
 
 function buildChapters(prefix, bookIndex) {
+  if (debugMode) console.log("buildChapters()");
   const col = document.getElementById(prefix + "Chapters");
   if (!col) return;
 
@@ -827,6 +851,7 @@ function buildChapters(prefix, bookIndex) {
 }
 
 function buildVerses(prefix, bookIndex, chapIndex) {
+  if (debugMode) console.log("buildVerses()");
   const col = document.getElementById(prefix + "Verses");
   if (!col) return;
 
@@ -849,6 +874,7 @@ function buildVerses(prefix, bookIndex, chapIndex) {
 }
 
 function updateDisplay() {
+  if (debugMode) console.log("togglePopup()");
   ["Start", "End"].forEach(prefix => {
     const b = document.getElementById("book" + prefix).value;
     const c = document.getElementById("chapter" + prefix).value;
@@ -863,6 +889,7 @@ function updateDisplay() {
 let chapColWidth = 0;
 
 function initPickers() {
+  if (debugMode) console.log("initPickers()");
   ["Start", "End"].forEach(prefix => {
     buildBookList(prefix);
   });
@@ -956,6 +983,7 @@ window.addEventListener('resize', () => {
 });
 
 function applyRefColumnWidths(prefixes = ["Start", "End"]) {
+  if (debugMode) console.log("applyRefColumnWidths()");
   // Measure text widths
   const temp = document.createElement("span");
   temp.style.position = "absolute";
@@ -989,6 +1017,7 @@ function applyRefColumnWidths(prefixes = ["Start", "End"]) {
 
 // Dropdown setup
 function populateBookDropdowns() {
+  if (debugMode) console.log("populateBookDropdowns()");
   elements.bookStart.innerHTML = "";
   elements.bookEnd.innerHTML = "";
   bookNames.forEach((name, i) => {
@@ -998,6 +1027,7 @@ function populateBookDropdowns() {
   });
 }
 function populateChapters(bookIndex, chapterSelect) {
+  if (debugMode) console.log("populateChapters()");
   chapterSelect.innerHTML = "";
   const numChapters = baseData[bookIndex]?.length || 0;
   for (let i = 0; i < numChapters; i++) {
@@ -1005,6 +1035,7 @@ function populateChapters(bookIndex, chapterSelect) {
   }
 }
 function populateVerses(bookIndex, chapterIndex, verseSelect) {
+  if (debugMode) console.log("populateVerses()");
   verseSelect.innerHTML = "";
   const numVerses = baseData[bookIndex]?.[chapterIndex]?.length || 0;
   for (let i = 0; i < numVerses; i++) {
@@ -1013,6 +1044,7 @@ function populateVerses(bookIndex, chapterIndex, verseSelect) {
 }
 
 function initializeSelections() {
+  if (debugMode) console.log("initializeSelections()");
   populateBookDropdowns();
 
   const range = getUrlRange();
@@ -1130,6 +1162,7 @@ function pad (n, len = 3) {
   return (n+1).toString().padStart(len, '0');
 }
 function getUrlRange() {
+  if (debugMode) console.log("getUrlRange()");
   const params = new URLSearchParams(location.search);
   const range = params.get("range");
   if (!range || !/^\d{8}-\d{8}$/.test(range)) return null;
@@ -1146,6 +1179,7 @@ function getUrlRange() {
 }
 
 function encodeRangeToUrl() {
+  if (debugMode) console.log("encodeRangeToUrl()");
   const bookStartVal = parseInt(elements.bookStart.value);
   const chapterStartVal = parseInt(elements.chapterStart.value);
   const verseStartVal = parseInt(elements.verseStart.value);
@@ -1170,6 +1204,7 @@ function encodeRangeToUrl() {
 
 // URL Search Save
 function saveUrlSearch() {
+  if (debugMode) console.log("saveUrlSearch()");
   const params = new URLSearchParams();
 
   const searchInput = elements.searchInput?.value.trim();
@@ -1211,6 +1246,7 @@ function saveUrlSearch() {
 }
 
 function resetUrl() {
+  if (debugMode) console.log("resetUrl()");
   const baseUrl = window.location.origin + window.location.pathname;
   const newUrl = `${baseUrl}`;
   // Copy to clipboard
@@ -1223,6 +1259,7 @@ function resetUrl() {
 }
 
 function applyUrlSearch() {
+  if (debugMode) console.log("applyUrlSearch()");
   const params = new URLSearchParams(window.location.search);
 
   if (!params.has("search")) {
@@ -1246,6 +1283,7 @@ function applyUrlSearch() {
 }
 
 function showToast(message, duration = 2000) {
+  if (debugMode) console.log("showToast()");
   const toast = document.createElement('div');
   toast.textContent = message;
   toast.style.position = 'fixed';
@@ -1271,6 +1309,7 @@ function compareBCV(b1, c1, v1, b2, c2, v2) {
 }
 
 function addVerses(b, c, v, delta, err = false) {
+  if (debugMode) console.log("addVerses()");
   // delta can be positive (add) or negative (subtract)
   while (delta !== 0) {
     if (!baseData[b] || !baseData[b][c]) break;
@@ -1319,6 +1358,7 @@ function addVerses(b, c, v, delta, err = false) {
 }
 
 function adjustSelections() {
+  if (debugMode) console.log("adjustSelections()");
   let bS = +elements.bookStart.value, cS = +elements.chapterStart.value, vS = +elements.verseStart.value;
   let bE = +elements.bookEnd.value, cE = +elements.chapterEnd.value, vE = +elements.verseEnd.value;
   let gap = parseInt(elements.gapInput.value, 10) - 1; // -1 to match 0-based index
@@ -1383,6 +1423,7 @@ const lookupUnderscore = { // Run reportnonadjacent.py to update this
   "[not]": [""]
 };
 function processUnderscoreWord(eng, grk, lookupUnderscore) {
+  if (debugMode) console.log("processUnderscoreWord()");
   if (!eng.includes("_")) return eng;
 
   const parts = eng.toLowerCase().split("_");
@@ -1403,6 +1444,7 @@ function processUnderscoreWord(eng, grk, lookupUnderscore) {
 }
 
 function processFormatting(input) {
+  if (debugMode) console.log("processFormatting()");
   const reducedStyle = 'font-size: var(--font-size-reduced); color: rgb(50, 100, 50);';
 
   function smallText(str) {
@@ -1534,6 +1576,7 @@ function processFormatting(input) {
 }
 
 function getDisplayOptions() {
+  if (debugMode) console.log("getDisplayOptions()");
   return {
     showGreek: elements.showGreek.checked,
     showEnglish: elements.showEnglish.checked,
@@ -1544,6 +1587,7 @@ function getDisplayOptions() {
 }
 
 function insertFwdBack(container) {
+  if (debugMode) console.log("insertFwdBack()");
   const backBtn = document.createElement("button");
   if (searchState.page === 0) {
     backBtn.id = "greyFwdBackBtn";
@@ -1575,6 +1619,7 @@ function insertFwdBack(container) {
 let centerFromSearch = false;
 let currentRender = "reference"; // used to track current rendering mode, changed in render()
 function render(customVerses = null, inDouble = false) {
+  if (debugMode) console.log("render()");
   if (customVerses && Array.isArray(customVerses)) {
     currentRender = "search";
   } else {
@@ -1587,6 +1632,7 @@ function render(customVerses = null, inDouble = false) {
     render(customVerses, true);
     activate(outputContainer.querySelector(`[data-panel-i-d="${activePanel}"]`), true);
     render(customVerses, true);
+    if (debugMode) console.log("end render()");
     return
   }
   immediateHidePopup();
@@ -1749,7 +1795,6 @@ function render(customVerses = null, inDouble = false) {
               });
             });
           }
-
           return span;
         };
 
@@ -1785,6 +1830,7 @@ function render(customVerses = null, inDouble = false) {
       if (searchState.boundaries.length > 1) {
         insertFwdBack(container)
       }
+      if (debugMode) console.log("end render()");
       return;
     }
 
@@ -1810,6 +1856,7 @@ function render(customVerses = null, inDouble = false) {
     if (searchState.boundaries.length > 1) {
       insertFwdBack(container)
     }
+    if (debugMode) console.log("end render()");
     return;
   }
 
@@ -1868,10 +1915,12 @@ function render(customVerses = null, inDouble = false) {
     container.scrollTop = (container.scrollHeight - container.clientHeight) / 2;
     centerFromSearch = false;
   }
+  if (debugMode) console.log("end render()");
   return;
 }
 
 function createClickableSpan(className, text, wordEl) {
+  if (debugMode) console.log("createClickableSpan()");
   const span = document.createElement("span");
   span.className = className;
   if (elements.customFormat.checked && className === "eng") {
@@ -1896,6 +1945,7 @@ function createClickableSpan(className, text, wordEl) {
 }
 
 function renderSingleVerse(container, book, chapter, verse, verseData, options, verseElin = null) {
+  if (debugMode) console.log("renderSingleVerse()");
   const { showGreek, showEnglish, showPcode, showStrongs, showRoots } = getDisplayOptions();
   const newlineAfterVerse = elements.newlineAfterVerse.checked;
   const {
@@ -2301,6 +2351,7 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
 }
 
 function positionPopupRelativeToElement(popup, targetEl) {
+  if (debugMode) console.log("positionPopupRelativeToElement()");
   popup.style.display = "block"; // make it visible to measure
 
   const elRect = targetEl.getBoundingClientRect();
@@ -2469,6 +2520,7 @@ function showPopup(e) {
   popup.style.display = "block";
 
   function handlePopupClose(event) {
+    if (debugMode) console.log("handlePopupClose()");
     event.stopPropagation(); // 👈 Stop bubbling
     event.preventDefault();  // 👈 Prevent click emulation
     if (!event.target.closest('.popup-clickable')) {
@@ -2486,6 +2538,7 @@ function showPopup(e) {
 }
 
 function showPopupDelay(event) {
+  if (debugMode) console.log("showPopupDelay()");
   currentPopup = event.target;
   popupActivatedAt = Date.now();  // Track when it was shown
   // Clear any previous timer (if user quickly moves between elements)
@@ -2499,6 +2552,7 @@ function showPopupDelay(event) {
 }
 
 function hidePopup() {
+  if (debugMode) console.log("hidePopup()");
   clearTimeout(popupDelayTimer);
   popupTimeout = setTimeout(() => {
     document.getElementById("wordPopup").style.display = "none";
@@ -2508,6 +2562,7 @@ function hidePopup() {
 }
 
 function immediateHidePopup() {
+  if (debugMode) console.log("immediateHidePopup()");
   clearTimeout(popupDelayTimer);
   document.getElementById("wordPopup").style.display = "none";
   currentPopup = null;
@@ -2515,6 +2570,7 @@ function immediateHidePopup() {
 }
 
 function cancelHidePopup() {
+  if (debugMode) console.log("cancelHidePopup()");
   clearTimeout(popupTimeout);
 }
 
@@ -2524,12 +2580,14 @@ let touchStartY = 0;
 const TAP_MAX_TIME = 300;  // Max ms for tap
 const TAP_MAX_DIST = 10;   // Max px for movement
 function showPopupTouchStart(e) {
+  if (debugMode) console.log("showPopupTouchStart()");
   const touch = e.touches[0];
   touchStartTime = Date.now();
   touchStartX = touch.clientX;
   touchStartY = touch.clientY;
 }
 function showPopupTouchEnd(e) {
+  if (debugMode) console.log("showPopupTouchEnd()");
   const touch = e.changedTouches[0];
   const elapsed = Date.now() - touchStartTime;
   const dx = touch.clientX - touchStartX;
@@ -2557,19 +2615,23 @@ function showPopupTouchEnd(e) {
 const SETTINGS_KEY = "userSettingsV4";
 
 function getActivePanelId() {
+  if (debugMode) console.log("getActivePanelId()");
   return Number(document.getElementById("output")?.dataset.panelID || 0);
 }
 
 function loadAllSettings() {
+  if (debugMode) console.log("loadAllSettings()");
   return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{"global":{}, "panels":[]}');
   //return JSON.parse('{"global":{}, "panels":[]}'); // Use this line to turn off settings.
 }
 
 function saveAllSettings(data) {
+  if (debugMode) console.log("saveAllSettings()");
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(data));
 }
 
 function dumpAllSettings() {
+  if (debugMode) console.log("dumpAllSettings()");
   localStorage.clear();
   const baseUrl = window.location.origin + window.location.pathname;
   const newUrl = `${baseUrl}`;
@@ -2578,6 +2640,7 @@ function dumpAllSettings() {
 }
 
 function saveSettings(targetAttr = null) {
+  if (debugMode) console.log("saveSettings()");
   // Load existing settings so we only update parts
   const panelId = getActivePanelId();
   const data = loadAllSettings();
@@ -2617,6 +2680,7 @@ function saveSettings(targetAttr = null) {
 }
 
 function resetSettings(targetAttr = null, panelOnly = null) {
+  if (debugMode) console.log("resetSettings()");
   const panelId = getActivePanelId();
   const data = loadAllSettings();
 
@@ -2657,6 +2721,7 @@ function resetSettings(targetAttr = null, panelOnly = null) {
 }
 
 function loadSettings(pageload=true, global=true) {
+  if (debugMode) console.log("loadSettings()");
   const panelId = getActivePanelId();
   const data = loadAllSettings();
 
@@ -2697,6 +2762,7 @@ function loadSettings(pageload=true, global=true) {
 }
 
 function parseMorphTag(tag) {
+  if (debugMode) console.log("parseMorphTag()");
   const tenseMap = {
     'P': 'present', 'I': 'imperfect', 'F': 'future', 'A': 'aorist',
     'R': 'perfect', 'L': 'pluperfect'
@@ -2779,6 +2845,7 @@ function parseMorphTag(tag) {
 }
 
 function parseCGPN(cgpn) {
+  if (debugMode) console.log("parseCGPN()");
   const caseMap = {
     'N': 'nominative', 'G': 'genitive', 'D': 'dative',
     'A': 'accusative', 'V': 'vocative', 'B': 'accusative/nominative',
@@ -2856,6 +2923,7 @@ const PATTERN_EXPAND = {
 };
 
 function matchMorphTag(pattern, tag) {
+  if (debugMode) console.log("matchMorphTag()");
   pattern = pattern || "";
   tag = tag || "";
 
@@ -2946,6 +3014,7 @@ function matchMorphTag(pattern, tag) {
 
 // Helper: parse a reference string into book/chapter/verse indices
 function tryParseReference(refString) {
+  if (debugMode) console.log("tryParseReference()");
   const parts = refString.trim().split(/\s+/);
   if (parts.length === 0) return null;
 
@@ -2964,6 +3033,7 @@ function tryParseReference(refString) {
 
 // Function to check if term is a possible match
 function lookInLookups(term) {
+  if (debugMode) console.log("lookInLookups()");
   if (!term) return false;
 
   // Check if contains + or |
@@ -2984,6 +3054,7 @@ function lookInLookups(term) {
 }
 
 function collectVerseMatches(b, c, v) {
+  if (debugMode) console.log("collectVerseMatches()");
   let verseRange = parseInt(elements.gapInput.value, 10) || 1;
   const centerRange = elements.centerRange.checked;
   const results = [];
@@ -3032,6 +3103,7 @@ function collectVerseMatches(b, c, v) {
 }
 
 function forEachVerse(callback) {
+  if (debugMode) console.log("forEachVerse()");
   for (let b = 0; b < baseData.length; b++) {
     if (!baseData[b]) continue;
     for (let c = 0; c < baseData[b].length; c++) {
@@ -3054,6 +3126,7 @@ let searchState = {
 };
 
 function refSearch(searchTerm) {
+  if (debugMode) console.log("refSearch()");
     // Reference search
   const ref = tryParseReference(searchTerm);
   if (ref) {
@@ -3067,6 +3140,7 @@ function refSearch(searchTerm) {
 }
 
 function searchVerses() {
+  if (debugMode) console.log("searchVerses()");
   saveSettings('save-id');
   const searchTerm = elements.searchInput.value.trim();
   const showContext = elements.showContext.checked;
@@ -3077,6 +3151,7 @@ function searchVerses() {
 
   if (!searchTerm) {
     container.innerHTML = '<p>Please enter a search term.</p>';
+    if (debugMode) console.log("end searchVerses()");
     return;
   }
 
@@ -3099,9 +3174,11 @@ function searchVerses() {
     
     if (matches.length === 0) {
       container.innerHTML = `<p>No verses found containing "${searchTerm}".</p>`;
+      if (debugMode) console.log("end searchVerses()");
       return;
     }
     render(matches);
+    if (debugMode) console.log("end searchVerses()");
     return;
   }
 
@@ -3119,12 +3196,14 @@ function searchVerses() {
 
   if (matches.length === 0) {
     container.innerHTML = `<p>No verses found containing "${searchTerm}".</p>`;
+    if (debugMode) console.log("end searchVerses()");
     return;
   }
   render(matches);
 }
 
 function setReferenceRange({ b, c, v }) {
+  if (debugMode) console.log("setReferenceRange()");
   const verseRange = parseInt(elements.gapInput.value, 10);
   const centerRange = elements.centerRange.checked;
 
@@ -3158,6 +3237,7 @@ function setReferenceRange({ b, c, v }) {
 }
 
 function handleLookupMatches(searchTerm, matches) {
+  if (debugMode) console.log("handleLookupMatches()");
   const uniqueWords = elements.uniqueWords.checked;
 
   // figure out paging bounds
@@ -3232,6 +3312,7 @@ function handleLookupMatches(searchTerm, matches) {
 }
 
 function handleWordMatches(term, matches) {
+  if (debugMode) console.log("setReferenceRange()");
   let exact = elements.exactMatch.checked;
   if (term.startsWith('=')) {
     exact = true;
@@ -3266,6 +3347,7 @@ function handleWordMatches(term, matches) {
 }
 
 function nextPage() {
+  if (debugMode) console.log("nextPage()");
   if (searchState.page + 1 < searchState.boundaries.length) {
     searchState.page++;
     searchVerses();
@@ -3273,6 +3355,7 @@ function nextPage() {
 }
 
 function prevPage() {
+  if (debugMode) console.log("nextPage()");
   if (searchState.page > 0) {
     searchState.page--;
     searchVerses();
@@ -3280,6 +3363,7 @@ function prevPage() {
 }
 
 function checkWordSequence(allWords, latinWords, isGreek, matchIdent = false) {
+  if (debugMode) console.log("checkWordSequence()");
   const normalized = elements.normalized.checked;
   const ordered = elements.ordered.checked;       // new checkbox for ordered matching
   const adjacent = elements.adjacent.checked;     // new checkbox for adjacent matching
@@ -3403,6 +3487,7 @@ function checkWordSequence(allWords, latinWords, isGreek, matchIdent = false) {
 }
 
 function multiWordSearch(searchStr, lookupInd) {
+  if (debugMode) console.log("multiWordSearch()");
   const reverseInterlinear = elements.reverseInterlinear.checked;
   const ordered = elements.ordered.checked;       // new checkbox for ordered matching
   const adjacent = elements.adjacent.checked;     // new checkbox for adjacent matching
@@ -3593,6 +3678,7 @@ function multiWordSearch(searchStr, lookupInd) {
 }
 
 function matchesLookup(term, value) {
+  if (debugMode) console.log("matchesLookup()");
   let exact = elements.exactMatch.checked;
   let result = true;
 
@@ -3650,6 +3736,7 @@ function matchesLookup(term, value) {
 }
 
 function updateBCV(delta, renderFlag = true) {
+  if (debugMode) console.log("updateBCV()");
   let bSel = elements.bookStart, cSel = elements.chapterStart, vSel = elements.verseStart;
 
   let b = +bSel.value;
@@ -3746,6 +3833,7 @@ function updateBCV(delta, renderFlag = true) {
 }
 
 function copyText(mode) {
+  if (debugMode) console.log("copyText()");
   const output = document.getElementById("output");
   const cleanText = mode === "grk" ? "Greek" : "English";
   if (!output) return;
@@ -3805,6 +3893,7 @@ const connectorOperators = {
 };
 
 function openQueryBuilder() {
+  if (debugMode) console.log("openQueryBuilder()");
   container.innerHTML = "";
 
   const currentQuery = searchInput.value.trim();
@@ -3858,10 +3947,12 @@ function openQueryBuilder() {
 }
 
 function closeQueryBuilder() {
+  if (debugMode) console.log("closeQueryBuilder()");
   modal.style.display = "none";
 }
 
 function addTermRow(termOp = "", termValue = "", connector = "") {
+  if (debugMode) console.log("addTermRow()");
   const row = document.createElement("div");
   row.className = "term-row";
 
@@ -3915,6 +4006,7 @@ function addTermRow(termOp = "", termValue = "", connector = "") {
 }
 
 function generateQuery() {
+  if (debugMode) console.log("generateQuery()");
   let searchStr = "";
 
   document.querySelectorAll(".term-row").forEach((row, index) => {
@@ -3945,6 +4037,7 @@ window.addEventListener("click", e => {
 });
 
 function keyboardswitch() {
+  if (debugMode) console.log("keyboardswitch()");
   const greekMain = document.getElementById("convertToGreek");
   const greekPopup = document.getElementById("convertToGreek2");
 
@@ -3970,6 +4063,7 @@ toggleBtn.addEventListener("click", () => {
 });
 
 function toggleHeader(e) {
+  if (debugMode) console.log("toggleHeader()");
   e.stopPropagation();
   const header = document.getElementById('header');
   const extras = document.getElementById('headerExtras');
@@ -3990,16 +4084,19 @@ function toggleHeader(e) {
 }
 
 function toggleHeadGroups(inel) {
+  if (debugMode) console.log("toggleHeadGroups()");
   document.getElementById(inel).classList.toggle('collapsed');
   updatePanelHeight()
   saveSettings();
 }
 
 function getCollapsedHeadGroups() {
+  if (debugMode) console.log("getCollapsedHeadGroups()");
   return [...document.querySelectorAll('.head-group-wrapper.collapsed')].map(el => el.id);
 }
 
 function setCollapsedHeadGroups(ids = []) {
+  if (debugMode) console.log("setCollapsedHeadGroups()");
   document.querySelectorAll('.head-group-wrapper').forEach(el => {
     el.classList.toggle('collapsed', ids.includes(el.id));
   });
@@ -4048,6 +4145,7 @@ document.addEventListener("keydown", function (e) {
 const slider = document.getElementById('paddingSlider');
 
 function updatePadding(val) {
+  if (debugMode) console.log("updatePadding()");
   document.documentElement.style.setProperty('--word-padding', val + 'em');
 }
 
@@ -4059,6 +4157,7 @@ slider.addEventListener('input', e => {
 const borderToggle = document.getElementById('borderToggle');
 
 function updateBorder(show) {
+  if (debugMode) console.log("updateBorder()");
   document.documentElement.style.setProperty(
     '--word-border',
     show ? '1px solid var(--even-darker-tan)' : 'none'
@@ -4076,6 +4175,7 @@ const serifFont = '"Times New Roman", serif';
 const sansFont = '"Noto Sans", "Segoe UI", "Arial", sans-serif';
 
 function updateFont(useSans) {
+  if (debugMode) console.log("updateFont()");
   document.documentElement.style.setProperty(
     '--font-family',
     useSans ? sansFont : serifFont
@@ -4088,6 +4188,7 @@ fontToggle.addEventListener('change', e => {
 });
 
 function autoGapInputWidth(el) {
+  if (debugMode) console.log("autoGapInputWidth()");
   const len = el.value.length || 1;
   el.style.width = (len + 3) + 'ch';
 }
@@ -4100,6 +4201,7 @@ const maxPanels = 1; // Zero-based max panels. Change this if going from 2 panel
 
 // Removed due to being redundant to historyStacks
 function storePanelState(panelID) {
+  if (debugMode) console.log("storePanelState()");
   panelState[panelID] = {
     bookStart: parseInt(elements.bookStart.value),
     chapterStart: parseInt(elements.chapterStart.value),
@@ -4115,6 +4217,7 @@ function storePanelState(panelID) {
 // End removed.
 
 function loadPanelState(panelID) {
+  if (debugMode) console.log("loadPanelState()");
   //console.log(historyStacks[panelID][historyIndexes[panelID]])
   const state = historyStacks[panelID][historyIndexes[panelID]];
   //const state = panelState[panelID];
@@ -4133,6 +4236,7 @@ function loadPanelState(panelID) {
 }
 
 function attachResize(divider) {
+  if (debugMode) console.log("attachResize()");
   let startPos = 0;
   let startSizes = null;
   let isHorizontal = true;
@@ -4213,6 +4317,7 @@ function attachResize(divider) {
 
 
 function resetPanelLayout() {
+  if (debugMode) console.log("resetPanelLayout()");
   outputContainer.style.gridTemplateColumns = "";
   outputContainer.style.gridTemplateRows = "";
 
@@ -4228,6 +4333,7 @@ function resetPanelLayout() {
 }
 
 function buildPanels(count) {
+  if (debugMode) console.log("buildPanels()");
   if (count === 1) {
     document.getElementById("historyButtonsRight").style.visibility = "hidden";
   } else {
@@ -4284,6 +4390,7 @@ function buildPanels(count) {
 }
 
 function activate(panel, fromRender = false) {
+  if (debugMode) console.log("activate()");
   const current = document.getElementById("output");
   if (current) current.id = "notput";
 
@@ -4294,6 +4401,7 @@ function activate(panel, fromRender = false) {
 }
 
 function setMode(changed = null) {
+  if (debugMode) console.log("setMode()");
   if (changed !== "init") {
     togglePopup("panelPopup") 
   }
@@ -4319,6 +4427,7 @@ function setMode(changed = null) {
 }
 
 function updatePanelHeight() {
+  if (debugMode) console.log("updatePanelHeight()");
   const isMobile = elements.smallScreen.checked;
   let height;
 
