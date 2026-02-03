@@ -3250,7 +3250,7 @@ function searchVerses() {
   }
 
   if (normalized) {
-    searchTerm = searchTerm.replace(/,|\.|\(|\)|:|"|”|“|'|;|\[\?\]|!/g, '');
+    searchTerm = searchTerm.replace(/,|\.|\(|\)|:|’|‘|"|”|“|'|;|\[\?\]|!/g, '');
     elements.searchInput.value = searchTerm
   }
 
@@ -3429,11 +3429,6 @@ function handleWordMatches(term, matches) {
   }
   let searchTerm = term.toLowerCase();
 
-  if (normalized) {
-    searchTerm = searchTerm.replace(/,|\.|\(|\)|:|"|”|“|'|;|\[\?\]|!/g, '');
-    elements.searchInput.value = searchTerm
-  }
-
   const startIndex = searchState.boundaries[searchState.page];
   const endIndex = startIndex + parseInt(elements.searchSize.value, 10);
 
@@ -3443,7 +3438,7 @@ function handleWordMatches(term, matches) {
     verseData.forEach(([ident, eng]) => {
       let word = (eng || "").toLowerCase();
       if (normalized) {
-        word = word.replace(/,|\.|\(|\)|:|"|”|“|'|;|\[\?\]|!/g, '');
+        word = word.replace(/,|\.|\(|\)|:|"|’|‘|”|“|'|;|\[\?\]|!/g, '');
       }
       let isMatch = exact ? word === searchTerm : word.includes(searchTerm);
       if (not) isMatch = !isMatch;
@@ -4627,43 +4622,49 @@ function changeAltTranslation() {
   if (activePanel === 0) { 
     activate(outputContainer.querySelector(`[data-panel-i-d="1"]`));
   }
-  onOptionsChange();
+  render();
   if (activePanel === 0) {
     activate(outputContainer.querySelector(`[data-panel-i-d="0"]`));
   }
 }
 
-select.addEventListener("change", async function() {
+function showDisclaimer() {
   togglePopup("panelPopup");
+  // Show modal with warning
+  modalText.innerHTML = 
+    "The GHT team is not responsible for the content of other translations, and their inclusion in this tool should not be considered endorsement. Any errors, omissions, additions, or interpretations remain the responsibility of the translation source organization.<br><br>All translations provided here are Public Domain, see <a href='https://ghukek.com/jsonsource.html' target='_blank' rel='noopener noreferrer'>here</a> for a list of sources.";
+  translationModal.style.display = "block";
+
+  // Wait for user acknowledgment
+  ackButton.onclick = async function() {
+    saveSettings();
+    translationModal.style.display = "none";
+
+    // Mark modal as shown for this session
+    modalShown = true;
+
+    await loadTranslation(select.value);
+  };
+
+  nackButton.onclick = async function() {
+    select.value = "none";
+    translationModal.style.display = "none";
+  };
+}
+
+select.addEventListener("change", async function() {
   const selected = select.value;
   if(selected === "none") {
+    togglePopup("panelPopup");
     compData = null;
     changeAltTranslation();
     return;
   }
 
   if(!modalShown) {
-    // Show modal with warning
-    modalText.innerHTML = 
-      "The GHT team is not responsible for the content of other translations, and their inclusion in this tool should not be considered endorsement. Any errors, omissions, additions, or interpretations remain the responsibility of the translation source organization.<br><br>All translations provided here are Public Domain, see <a href='https://ghukek.com/jsonsource.html'>here</a> for a list of sources.";
-    translationModal.style.display = "block";
-
-    // Wait for user acknowledgment
-    ackButton.onclick = async function() {
-      saveSettings();
-      translationModal.style.display = "none";
-
-      // Mark modal as shown for this session
-      modalShown = true;
-
-      await loadTranslation(selected);
-    };
-
-    nackButton.onclick = async function() {
-      select.value = "none";
-      translationModal.style.display = "none";
-    };
+    showDisclaimer();
   } else {
+    togglePopup("panelPopup");
     // Modal already shown, just load the translation
     await loadTranslation(selected);
   }

@@ -135,7 +135,8 @@
     <label title="Extend the height of the panels to 90% of the screen."><input type="checkbox" id="smallScreen" data-id global-setting onclick="setMode()" autocomplete="off"> Taller Panels</label><br>
     <label title="Link both panels. Useful for side-by-side reading."><input type="checkbox" id="linkPanels" data-id global-setting onclick="render()" autocomplete="off"> Parallel Mode</label><br>
     <button id="swapPanelsBtn">Swap Panels</button><br>
-    <label title="Select a second translation as a comparison." for="translationSelect">Parallel Translation:</label><br>
+    <label title="Select a second translation as a comparison." for="translationSelect">Parallel Translation:</label>
+    <button id="toggleDisclaimer" type="button" title="About Parallel Translations" onclick="showDisclaimer()">?</button><br>
     <select id="translationSelect" autocomplete="off">
       <option value="none" selected>None</option>
       <option value="bsb">Berean Standard Bible</option>
