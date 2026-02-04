@@ -3250,7 +3250,7 @@ function searchVerses() {
   }
 
   if (normalized) {
-    searchTerm = searchTerm.replace(/,|\.|\(|\)|:|’|‘|"|”|“|'|;|\[\?\]|!/g, '');
+    searchTerm = searchTerm.replace(/,|\.|\(|\)|:|"|’|‘|`|”|“|'|;|–|\?|\[\?\]|!/g, '');
     elements.searchInput.value = searchTerm
   }
 
@@ -3418,6 +3418,8 @@ function handleWordMatches(term, matches) {
   let exact = elements.exactMatch.checked;
   let not = false;
   const normalized = elements.normalized.checked;
+  const uniqueWords = elements.uniqueWords.checked;
+  let found = [];
 
   if (term.startsWith('~')) {
     not = true;
@@ -3438,16 +3440,23 @@ function handleWordMatches(term, matches) {
     verseData.forEach(([ident, eng]) => {
       let word = (eng || "").toLowerCase();
       if (normalized) {
-        word = word.replace(/,|\.|\(|\)|:|"|’|‘|”|“|'|;|\[\?\]|!/g, '');
+        word = word.replace(/,|\.|\(|\)|:|"|’|‘|`|”|“|'|;|–|\?|\[\?\]|!/g, '');
       }
       let isMatch = exact ? word === searchTerm : word.includes(searchTerm);
       if (not) isMatch = !isMatch;
 
       if (isMatch) {
         if (count >= startIndex && count < endIndex) {
-          matches.push([ident, eng, `${bookAbb[b]} ${c + 1}:${v + 1}`]);
+          if (!uniqueWords) {
+            matches.push([ident, eng, `${bookAbb[b]} ${c + 1}:${v + 1}`]);
+            count++;
+          } else if (!found.includes(word)) {
+            matches.push([ident, word, ""]);
+            found.push(word);
+            count++;
+          }
         }
-        count++;
+        //count++;
       }
     });
   });
@@ -4674,6 +4683,16 @@ select.addEventListener("change", async function() {
 async function loadTranslation(selected) {
   const params = new URLSearchParams(window.location.search);
   const path = params.get("db") === "basex" ? translationsx[selected] : translations[selected];
+
+  searchState = {
+    term: null,         
+    exactMatch: null,
+    contextCount: 0,    
+    page: 0,          
+    pageSize: 10,    
+    boundaries: [0]     
+  };
+
   try {
     const response = await fetch(path);
     compData = await response.json();
