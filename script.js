@@ -2302,7 +2302,7 @@ function renderSingleVerse(container, book, chapter, verse, verseData, options, 
         appendGreek(wordEl, grk);
         hasContent = true;
       } else {
-        appendSpacer(wordEl);
+        appendSpacer(wordEl, "grk");
       }
     }
 
