@@ -399,7 +399,9 @@ function statesEqual(a, b) {
   return true;
 }
 
-function saveState() {
+let lastEmpty = false; // If we are on a failed search, use a temporary state that will be dumped or overwritten.
+
+function saveState(empty = false) {
   if (debugMode) console.log("saveState()")
   if (restoring) return;
 
@@ -434,9 +436,13 @@ function saveState() {
     stack.splice(index + 1);
   }
 
-  // Push new state
-  stack.push(state);
-  index++;
+  if (!lastEmpty) {
+    // Push new state
+    stack.push(state);
+    index++;
+  } else {
+    stack[index] = state;
+  }
 
   // Limit to 100
   if (stack.length > 100) {
@@ -445,6 +451,12 @@ function saveState() {
   }
 
   historyIndexes[panelID] = index;
+
+  if (empty) {
+    lastEmpty = true;
+  } else {
+    lastEmpty = false;
+  }
 
   updateHistoryButtons(panelID)
 }
@@ -3271,6 +3283,7 @@ function searchVerses() {
 
   if (!searchTerm) {
     container.innerHTML = '<p>Please enter a search term.</p>';
+    saveState(true);
     if (debugMode) console.log("end searchVerses()");
     return;
   }
@@ -3302,6 +3315,7 @@ function searchVerses() {
     
     if (matches.length === 0) {
       container.innerHTML = `<p>No verses found containing "${searchTerm}".</p>`;
+      saveState(true);
       if (debugMode) console.log("end searchVerses()");
       return;
     }
@@ -3324,6 +3338,7 @@ function searchVerses() {
 
   if (matches.length === 0) {
     container.innerHTML = `<p>No verses found containing "${searchTerm}".</p>`;
+    saveState(true);
     if (debugMode) console.log("end searchVerses()");
     return;
   }
