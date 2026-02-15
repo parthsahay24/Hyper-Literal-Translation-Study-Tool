@@ -399,7 +399,7 @@ function statesEqual(a, b) {
   return true;
 }
 
-let lastEmpty = false; // If we are on a failed search, use a temporary state that will be dumped or overwritten.
+let lastEmpty = [false, false, false]; // If we are on a failed search, use a temporary state that will be dumped or overwritten.
 
 function saveState(empty = false) {
   if (debugMode) console.log("saveState()")
@@ -408,10 +408,12 @@ function saveState(empty = false) {
   const activePanel = document.getElementById("output");
   if (!activePanel) return;
 
-  const panelID = Number(activePanel.dataset.panelID);
+  let panelID = Number(activePanel.dataset.panelID);
 
-  const stack = historyStacks[panelID];
-  let index = historyIndexes[panelID];
+  if (select.value !== "none" && panelID === 1) panelID = 2; // Use third stack for alternate translation panel.
+
+  const stack = historyStacks[panelID] ??= [];
+  let index = historyIndexes[panelID] ??= -1;
 
   const state = {};
   Object.keys(elements).forEach(id => {
@@ -436,7 +438,7 @@ function saveState(empty = false) {
     stack.splice(index + 1);
   }
 
-  if (!lastEmpty) {
+  if (!lastEmpty[panelID]) {
     // Push new state
     stack.push(state);
     index++;
@@ -453,9 +455,9 @@ function saveState(empty = false) {
   historyIndexes[panelID] = index;
 
   if (empty) {
-    lastEmpty = true;
+    lastEmpty[panelID] = true;
   } else {
-    lastEmpty = false;
+    lastEmpty[panelID] = false;
   }
 
   updateHistoryButtons(panelID)
@@ -468,9 +470,11 @@ function getSizeBytes(obj) {
 // Example
 // console.log("historyStack size (bytes):", getSizeBytes(historyStack));
 
-function loadState(panelID, index) {
+function loadState(panelID, increment) {
   if (debugMode) console.log("loadState()")
-  const stack = historyStacks[panelID];
+  const stackID = panelID === 1 && select.value !== "none" ? 2 : panelID;
+  const index = historyIndexes[stackID] + increment;
+  const stack = historyStacks[stackID];
   if (!stack) return;
   if (index < 0 || index >= stack.length) return;
 
@@ -504,7 +508,7 @@ function loadState(panelID, index) {
   centerFromSearch = state['centerScroll'];
   currentRender = state['currentRender']
 
-  historyIndexes[panelID] = index;
+  historyIndexes[stackID] = index;
 
   // Trigger appropriate re-run
   updateDisplay();
@@ -528,8 +532,9 @@ function activateAllPanelsAndRefresh() {
 
   restoring = true;
 
-  const panels = outputContainer.querySelectorAll("[data-panel-i-d]");
+  let panels = outputContainer.querySelectorAll("[data-panel-i-d]");
   panels.forEach(panel => {
+    if (select.value !== "none" && panel.dataset.panelID === "1") return; // skip alternate translation panel if active
     activate(panel, false);
     onOptionsChange();
   });
@@ -546,7 +551,6 @@ function activateAllPanelsAndRefresh() {
 
 function swapPanelsHistory(a = 0, b = 1) {
   if (debugMode) console.log("swapPanelsHistory()")
-  console.log(historyStacks[0]['bookStart'])
   if (!historyStacks[0] || !historyStacks[1]) return;
   // swap history stacks
   [historyStacks[a], historyStacks[b]] =
@@ -566,10 +570,11 @@ function swapPanelsHistory(a = 0, b = 1) {
 
   // Update history buttons for both panels
   updateHistoryButtons(a);
-  updateHistoryButtons(b);
+  if (select.value === "none") {
+    updateHistoryButtons(b);
+  }
 
   activateAllPanelsAndRefresh();
-  console.log(historyStacks)
 }
 
 document.addEventListener("keydown", (e) => {
@@ -595,11 +600,12 @@ document.addEventListener("keydown", (e) => {
 
 function updateHistoryButtons(panelID) {
   if (debugMode) console.log("updateHistoryButtons()")
+  buttonID = panelID === 0 ? 0 : 1;
   const index = historyIndexes[panelID];
   const stack = historyStacks[panelID];
 
-  const backBtn = document.querySelector(`[data-history-back="${panelID}"]`);
-  const fwdBtn  = document.querySelector(`[data-history-forward="${panelID}"]`);
+  const backBtn = document.querySelector(`[data-history-back="${buttonID}"]`);
+  const fwdBtn  = document.querySelector(`[data-history-forward="${buttonID}"]`);
 
   if (!backBtn || !fwdBtn) return;
 
@@ -609,15 +615,13 @@ function updateHistoryButtons(panelID) {
 
 function historyBack(panelID) {
   if (debugMode) console.log("historyBack()")
-  const idx = historyIndexes[panelID];
-  loadState(panelID, idx - 1);
+  loadState(panelID, -1);
   updateHistoryButtons(panelID);
 }
 
 function historyForward(panelID) {
   if (debugMode) console.log("historyForward()")
-  const idx = historyIndexes[panelID];
-  loadState(panelID, idx + 1);
+  loadState(panelID, 1);
   updateHistoryButtons(panelID);
 }
 
@@ -4681,21 +4685,25 @@ let modalShown = false;
 
 function changeAltTranslation() {
   if (debugMode) console.log("changeAltTranslation()");
-  let activePanel = getActivePanelId();
-  if (activePanel === 0) { 
-    activate(outputContainer.querySelector(`[data-panel-i-d="1"]`));
-  }
   let data = loadAllSettings();
-  if (!data.panels[2]) {
+  if (!data.panels[2] || !historyStacks[2]) {
+    let activePanel = getActivePanelId();
+    if (activePanel === 0) { 
+      activate(outputContainer.querySelector(`[data-panel-i-d="1"]`));
+    }
+
     elements.showGreek.checked = false;
     elements.showPcode.checked = false;
     elements.showStrongs.checked = false;
     elements.showRoots.checked = false;
     saveSettings(null, true);
-  }
-  render();
-  if (activePanel === 0) {
-    activate(outputContainer.querySelector(`[data-panel-i-d="0"]`));
+    
+    render();
+    if (activePanel === 0) {
+      activate(outputContainer.querySelector(`[data-panel-i-d="0"]`));
+    }
+  } else {
+    loadState(1, 0);
   }
 }
 
@@ -4730,7 +4738,7 @@ select.addEventListener("change", async function() {
     togglePopup("panelPopup");
     compData = null;
     changeAltTranslation();
-    document.getElementById("swapPanelsBtn").disabled = false;
+    //document.getElementById("swapPanelsBtn").disabled = false;
     return;
   }
 
@@ -4741,7 +4749,7 @@ select.addEventListener("change", async function() {
     // Modal already shown, just load the translation
     await loadTranslation(selected);
   }
-  document.getElementById("swapPanelsBtn").disabled = true;
+  //document.getElementById("swapPanelsBtn").disabled = true;
 });
 
 // Extract translation loading logic for reuse
