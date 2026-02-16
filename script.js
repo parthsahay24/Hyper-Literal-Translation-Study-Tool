@@ -4726,13 +4726,32 @@ function showDisclaimer() {
 
 select.addEventListener("change", async function() {
   const selected = select.value;
+  // Mapping of translation values to their abbreviations
+  const translationAbbrevs = {
+    "bsb": "BSB",
+    "msb": "MSB", 
+    "web": "WEB",
+    "kjv": "KJV",
+    "kjv1611": "KJV1611",
+    "gen": "GEN",
+    "tyn": "TYN",
+    "tynsp": "TYNSP",
+    "wyc": "WYC",
+    "wycsp": "WYCSP"
+  };
+  
+  const abbrevElement = document.getElementById("translationAbbrev");
+
   if(selected === "none") {
     togglePopup("panelPopup");
     compData = null;
     changeAltTranslation();
     document.getElementById("swapPanelsBtn").disabled = false;
+    abbrevElement.style.display = "none";
     return;
   }
+  abbrevElement.textContent = translationAbbrevs[selected] || selected.toUpperCase();
+  abbrevElement.style.display = "block";
 
   if(!modalShown) {
     showDisclaimer();
