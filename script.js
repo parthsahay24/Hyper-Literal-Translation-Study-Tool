@@ -3071,7 +3071,7 @@ const PATTERN_EXPAND = {
 };
 
 function matchMorphTag(pattern, tag) {
-  if (debugMode) console.log("matchMorphTag()");
+  if (debugModeExtra) console.log("matchMorphTag()");
   pattern = pattern || "";
   tag = tag || "";
 
@@ -3648,17 +3648,23 @@ function checkWordSequence(allWords, latinWords, isGreek, matchIdent = false) {
     // Sliding window of length n
     for (let start = 0; start <= len - n; start++) {
       const windowWords = normalizedWords.slice(start, start + n);
-      // Check if this window contains all search words (any order)
-      const wordsFound = new Set();
-      windowWords.forEach(w => {
-        for (let wi = 0; wi < n; wi++) {
-          if (tokenMatchesWord(w, latinWords[wi])) {
-            wordsFound.add(wi);
+      // Check if this window contains all search words (any order). Avoiding double-counting tokens by tracking used indices.
+      const usedTokens = new Set();
+      let matchedCount = 0;
+
+      for (let wi = 0; wi < n; wi++) {
+        for (let ti = 0; ti < n; ti++) {
+          if (usedTokens.has(ti)) continue;
+
+          if (tokenMatchesWord(windowWords[ti], latinWords[wi])) {
+            usedTokens.add(ti);
+            matchedCount++;
+            break;
           }
         }
-      });
-      if (wordsFound.size === n) {
-        // Return the window indices as consecutive array
+      }
+
+      if (matchedCount === n) {
         return Array.from({ length: n }, (_, i) => start + i);
       }
     }
