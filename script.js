@@ -708,8 +708,13 @@ function setupEventListeners() {
   if (debugMode) console.log("setupEventListeners()");
   // Helper for start/end selectors
   const rangeSelectors = [
-    { book: "bookStart", chapter: "chapterStart", verse: "verseStart", type: "start" },
-    { book: "bookEnd", chapter: "chapterEnd", verse: "verseEnd", type: "end" }
+    {
+      book: "bookStart",
+      chapter: "chapterStart",
+      verse: "verseStart",
+      type: "start",
+    },
+    { book: "bookEnd", chapter: "chapterEnd", verse: "verseEnd", type: "end" },
   ];
 
   rangeSelectors.forEach(({ book, chapter, verse, type }) => {
@@ -745,12 +750,12 @@ function setupEventListeners() {
   elements.gapInput.addEventListener("input", () => {
     let verseRange = parseInt(elements.gapInput.value, 10);
     if (isNaN(verseRange) || verseRange < 1) elements.gapInput.value = 1;
-    if (currentRender === "search") searchVerses(); 
+    if (currentRender === "search") searchVerses();
     else if (elements.enforceGap.checked) {
       lastChanged = "start";
       adjustSelections();
       render();
-    } 
+    }
   });
 
   elements.enforceGap.addEventListener("change", () => {
@@ -761,43 +766,61 @@ function setupEventListeners() {
 
   // For checkboxes that trigger onOptionsChange
   [
-    "showGreek", "showEnglish", "showPcode", "showVerses",
-    "showStrongs", "showRoots", "newlineAfterVerse", "reverseInterlinear", "highlightSearch", "searchSize", "customFormat", "altSearch", "uncialGreek"
-  ].forEach(id => {
+    "showGreek",
+    "showEnglish",
+    "showPcode",
+    "showVerses",
+    "showStrongs",
+    "showRoots",
+    "newlineAfterVerse",
+    "reverseInterlinear",
+    "highlightSearch",
+    "searchSize",
+    "customFormat",
+    "altSearch",
+    "uncialGreek",
+  ].forEach((id) => {
     elements[id].addEventListener("change", onOptionsChange);
   });
 
   // For checkboxes or inputs that trigger searchVerses
   [
-    "searchBtn", "centerRange", "showContext", "exactMatch",
-    "uniqueWords", "ordered", "adjacent", "normalized","expandMorph"
-  ].forEach(id => {
+    "searchBtn",
+    "centerRange",
+    "showContext",
+    "exactMatch",
+    "uniqueWords",
+    "ordered",
+    "adjacent",
+    "normalized",
+    "expandMorph",
+  ].forEach((id) => {
     const el = elements[id];
     const event = id === "searchBtn" ? "click" : "change";
     el.addEventListener(event, searchChange);
   });
 
-  elements.searchInput.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
+  elements.searchInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
       searchVerses();
     }
   });
 
-  const fontSizeSlider = document.getElementById('fontSize');
-  const fontSize2Slider = document.getElementById('fontSize2');
-  const englishSecondary = document.getElementById('englishSecondary');
-  const greekSecondary = document.getElementById('greekSecondary');
+  const fontSizeSlider = document.getElementById("fontSize");
+  const fontSize2Slider = document.getElementById("fontSize2");
+  const englishSecondary = document.getElementById("englishSecondary");
+  const greekSecondary = document.getElementById("greekSecondary");
   // Live updates
-  fontSizeSlider.addEventListener('input', setFontSize);
-  fontSize2Slider.addEventListener('input', setFontSize);
-  englishSecondary.addEventListener('change', () => {
+  fontSizeSlider.addEventListener("input", setFontSize);
+  fontSize2Slider.addEventListener("input", setFontSize);
+  englishSecondary.addEventListener("change", () => {
     if (englishSecondary.checked) {
       greekSecondary.checked = false;
     }
     setFontSize();
   });
 
-  greekSecondary.addEventListener('change', () => {
+  greekSecondary.addEventListener("change", () => {
     if (greekSecondary.checked) {
       englishSecondary.checked = false;
     }
@@ -805,40 +828,48 @@ function setupEventListeners() {
   });
 
   elements.searchInput.addEventListener("beforeinput", (e) =>
-    handleGreekBeforeInput(e, elements.convertToGreek)
+    handleGreekBeforeInput(e, elements.convertToGreek),
   );
 
   elements.searchInput.addEventListener("input", handleGreekInput);
 
-  window.addEventListener('click', function (e) {
-    const isMenuPopup = e.target.closest('.menu-popup, .ref-popup');
-    const isMenuToggleButton = e.target.matches('button[data-toggle-popup]');
+  window.addEventListener("click", function (e) {
+    const isMenuPopup = e.target.closest(".menu-popup, .ref-popup");
+    const isMenuToggleButton = e.target.matches("button[data-toggle-popup]");
 
     if (!isMenuPopup && !isMenuToggleButton) {
-      document.querySelectorAll('.menu-popup, .ref-popup').forEach(p => {
-        p.style.display = 'none';
+      document.querySelectorAll(".menu-popup, .ref-popup").forEach((p) => {
+        p.style.display = "none";
       });
     }
   });
 
-  const toggleGreekHelpBtn = document.getElementById('toggleGreekHelp');
-  const greekHelpPopup = document.getElementById('greekHelpPopup');
-  const greekHelpImage = greekHelpPopup.querySelector('img');
+  const toggleGreekHelpBtn = document.getElementById("toggleGreekHelp");
+  const greekHelpPopup = document.getElementById("greekHelpPopup");
+  const greekHelpImage = greekHelpPopup.querySelector("img");
 
   // Toggle popup when ? button is clicked
-  toggleGreekHelpBtn.addEventListener('click', () => {
+  toggleGreekHelpBtn.addEventListener("click", () => {
     greekHelpPopup.hidden = !greekHelpPopup.hidden;
   });
 
   // Close popup when image is clicked
-  greekHelpImage.addEventListener('click', () => {
+  greekHelpImage.addEventListener("click", () => {
     greekHelpPopup.hidden = true;
   });
 
-  document.getElementById("historyBackBtnRight").addEventListener("click", () => historyBack(1));
-  document.getElementById("historyForwardBtnRight").addEventListener("click", () => historyForward(1));
-  document.getElementById("historyBackBtnLeft").addEventListener("click", () => historyBack(0));
-  document.getElementById("historyForwardBtnLeft").addEventListener("click", () => historyForward(0));
+  document
+    .getElementById("historyBackBtnRight")
+    .addEventListener("click", () => historyBack(1));
+  document
+    .getElementById("historyForwardBtnRight")
+    .addEventListener("click", () => historyForward(1));
+  document
+    .getElementById("historyBackBtnLeft")
+    .addEventListener("click", () => historyBack(0));
+  document
+    .getElementById("historyForwardBtnLeft")
+    .addEventListener("click", () => historyForward(0));
 }
 
 // Fancy Reference Selector Box code.
@@ -1127,6 +1158,55 @@ function populateVerses(bookIndex, chapterIndex, verseSelect) {
     verseSelect.add(new Option(i + 1, i));
   }
 }
+// Populate book filter dropdown
+function populateBookFilter() {
+  if (debugMode) console.log("populateBookFilter()");
+  const bookFilter = document.getElementById("bookFilter");
+  if (!bookFilter) return;
+  
+  // Keep "All Books" option, add individual books
+  bookNames.forEach((name, i) => {
+    if (!baseData[i] || baseData[i].length === 0) return;
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = name;
+    bookFilter.appendChild(option);
+  });
+}
+
+function selectAllBooks() {
+  if (debugMode) console.log("selectAllBooks()");
+  const bookFilter = document.getElementById("bookFilter");
+  Array.from(bookFilter.options).forEach(opt => {
+    if (opt.value === "all") opt.selected = true;
+    else opt.selected = false;
+  });
+  saveSettings('save-id');
+}
+
+function selectGospels() {
+  if (debugMode) console.log("selectGospels()");
+  const bookFilter = document.getElementById("bookFilter");
+  const gospelIndices = [39, 40, 41, 42];
+  
+  Array.from(bookFilter.options).forEach(opt => {
+    if (opt.value === "all") opt.selected = false;
+    else opt.selected = gospelIndices.includes(parseInt(opt.value));
+  });
+  saveSettings('save-id');
+}
+
+function selectPaul() {
+  if (debugMode) console.log("selectPaul()");
+  const bookFilter = document.getElementById("bookFilter");
+  const paulIndices = [44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56];
+  
+  Array.from(bookFilter.options).forEach(opt => {
+    if (opt.value === "all") opt.selected = false;
+    else opt.selected = paulIndices.includes(parseInt(opt.value));
+  });
+  saveSettings('save-id');
+}
 
 function initializeSelections() {
   if (debugMode) console.log("initializeSelections()");
@@ -1235,8 +1315,8 @@ function initializeSelections() {
 
   // Load search params if present
   applyUrlSearch();
-
   // Initialize panel ref/search based on saved/random data.
+  populateBookFilter();
   //for (let i = 0; i < maxPanels; i++) {
   //  storePanelState(i);
   //}

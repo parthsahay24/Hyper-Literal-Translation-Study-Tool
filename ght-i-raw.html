@@ -130,6 +130,13 @@
     <label title="Will find combining morphology letters when checked."><input id="expandMorph" type="checkbox" data-id save-id checked autocomplete="off"> Expand Morph</label><br>
     <!-- <button class="buttonInDropdown" onclick="saveSettings('save-id')">Save Search Settings</button><br> -->
     <!-- <button class="buttonInDropdown" onclick="resetSettings('save-id', true)">Reset Search Settings</button> -->
+    <label for="bookFilter">Limit to Books:</label>
+    <select id="bookFilter" multiple size="5" data-id save-id autocomplete="off">
+      <option value="all" selected>All Books</option>
+    </select><br>
+    <button class="buttonInDropdown" onclick="selectAllBooks()">Select All</button>
+    <button class="buttonInDropdown" onclick="selectGospels()">Gospels</button>
+    <button class="buttonInDropdown" onclick="selectPaul()">Paul's Letters</button>
   </div>
   <div id="panelPopup" class="popup menu-popup">
     <label title="Adds a second panel to the right of the first."><input type="checkbox" id="horizPanel" data-id global-setting onclick="setMode('horiz')" autocomplete="off"> 2nd Panel Right</label><br>
