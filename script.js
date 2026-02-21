@@ -709,7 +709,7 @@ function setupEventListeners() {
   // Helper for start/end selectors
   const rangeSelectors = [
     { book: "bookStart", chapter: "chapterStart", verse: "verseStart", type: "start" },
-    { book: "bookEnd", chapter: "chapterEnd", verse: "verseEnd", type: "end" },
+    { book: "bookEnd", chapter: "chapterEnd", verse: "verseEnd", type: "end" }
   ];
 
   rangeSelectors.forEach(({ book, chapter, verse, type }) => {
@@ -777,7 +777,7 @@ function setupEventListeners() {
     el.addEventListener(event, searchChange);
   });
 
-  elements.searchInput.addEventListener("keydown", function (e) {
+  elements.searchInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
       searchVerses();
     }
@@ -810,13 +810,13 @@ function setupEventListeners() {
 
   elements.searchInput.addEventListener("input", handleGreekInput);
 
-  window.addEventListener("click", function (e) {
+  window.addEventListener('click', function(e) {
     const isMenuPopup = e.target.closest('.menu-popup, .ref-popup');
     const isMenuToggleButton = e.target.matches('button[data-toggle-popup]');
 
     if (!isMenuPopup && !isMenuToggleButton) {
       document.querySelectorAll('.menu-popup, .ref-popup').forEach((p) => {
-        p.style.display = "none";
+        p.style.display = 'none';
       });
     }
   });
